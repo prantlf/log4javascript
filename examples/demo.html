@@ -1,0 +1,138 @@
+<?xml version="1.0"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+	<head>
+		<title>log4javascript demo</title>
+		<meta http-equiv="content-type" content="text/html; charset=iso-8859-1" />
+		<meta name="author" content="Tim Down - tim@timdown.co.uk" />
+		<meta name="description" content="log4javascript, a logging framework for JavaScript based on log4j" />
+		<meta name="robots" content="all" />
+		<link rel="stylesheet" type="text/css" media="screen,print" href="../main.css" title="Default" />
+		<script type="text/javascript" src="../log4javascript.js"></script>
+		<script type="text/javascript">
+			// <![CDATA[
+			var	log = log4javascript.getLogger("demo");
+
+			var popUpAppender = new log4javascript.PopUpAppender();
+			popUpAppender.setFocusPopUp(true);
+			log.addAppender(popUpAppender);
+
+			var browserConsoleAppender = new log4javascript.BrowserConsoleAppender();
+			log.addAppender(browserConsoleAppender);
+			
+			var words = ["Watford", "scored", "three", "second-half", "goals", "to", "take",
+				"a", "commanding", "lead", "into", "the", "second", "leg", "of", "their",
+				"play-off", "tie", "Marlon", "King", "put", "Watford", "ahead", "with", "a",
+				"superbly", "struck", "left-foot", "shot", "from", "the", "edge", "of", "the",
+				"area", "Ashley", "Young", "scored", "with", "a", "curling", "free-kick",
+				"and", "Matthew", "Spring", "cut", "inside", "before", "beating", "Gabor",
+				"Kiraly", "late", "on"];
+			
+			var loaded = false;
+			
+			function addInlineAppender(button) {
+				if (loaded) {
+					var a = new log4javascript.InlineAppender(document.getElementById("inlineLog"), false, new log4javascript.SimpleLayout(), false, false, true, "550", "200");
+					a.setThreshold(log4javascript.Level.WARN);
+					log.addAppender(a);
+					button.disabled = true;
+				} else {
+					alert("Please wait till the page has fully loaded");
+				}
+			}
+			
+			function generateRandom() {
+				var numberOfEntries = parseInt(document.getElementById("numberOfLogEntries").value);
+				for (var i = 0; i < numberOfEntries; i++) {
+					var numberOfWords = 1 + Math.floor(10 * Math.random());
+					var entryWords = [];
+					for (var j = 0; j < numberOfWords; j++) {
+						entryWords.push(words[Math.floor(Math.random() * words.length)]);
+					}
+					var entryMessage = entryWords.join(" ");
+					var levelNum = Math.floor(Math.random() * 6);
+					switch (levelNum) {
+						case 0:
+							log.trace(entryMessage);
+							break;
+						case 1:
+							log.debug(entryMessage);
+							break;
+						case 2:
+							log.info(entryMessage);
+							break;
+						case 3:
+							log.warn(entryMessage);
+							break;
+						case 4:
+							log.error(entryMessage);
+							break;
+						case 5:
+							log.fatal(entryMessage);
+							break;
+					}
+				}
+			}
+			// ]]>
+		</script>
+	</head>
+	<body onload="loaded = true; document.getElementById('enabled').checked = true; document.getElementById('traceenabled').checked = false">
+		<div id="container" class="nonav">
+			<div id="header">
+				<h1><a href="../docs/index.html">log4javascript</a></h1>
+			</div>
+			<div id="content">
+				<div id="nav">
+					<a class="navitem" href="../docs/index.html">docs</a>
+					| <a class="navitem" href="../docs/quickstart.html">quick start</a>
+					| <a class="navitem" href="../docs/manual.html">manual</a>
+					| <span class="navitem">demo</span>
+					| <a class="navitem" href="http://www.timdown.co.uk/log4javascript" target="_blank">website</a>
+				</div>
+				<h1>log4javascript demo</h1>
+				<p>
+					<em><strong>NB</strong> Since the demo below uses pop-up windows, you will
+					need to disable any pop-up blockers you may have for it to work.</em>
+				</p>
+				<p>
+					Enter a log message below and click on one of the buttons to log
+					your message at your desired level. A pop-up logging window will
+					appear the first time you click a button. You can then filter on by
+					log level, toggle word-wrapping and perform text and regular
+					expression searches on the log entries.
+				</p>
+				<div class="example">
+					<input type="text" id="logText" value="Put log message here" />
+					<input type="button" value="trace" onclick="log.trace(document.getElementById('logText').value)" />
+					<input type="button" value="debug" onclick="log.debug(document.getElementById('logText').value)" />
+					<input type="button" value="info" onclick="log.info(document.getElementById('logText').value)" />
+					<input type="button" value="warn" onclick="log.warn(document.getElementById('logText').value)" />
+					<input type="button" value="error" onclick="log.error(document.getElementById('logText').value)" />
+					<input type="button" value="fatal" onclick="log.fatal(document.getElementById('logText').value)" />
+					
+					<br />
+					Generate <input type="text" size="5" id="numberOfLogEntries" value="50" /> random log entries
+					<input type="button" value="go" onclick="generateRandom()" />
+					<input type="button" value="add inline error log" onclick="addInlineAppender(this)" />
+					<br />
+					<input type="checkbox" id="enabled" onclick="log4javascript.setEnabled(this.checked)" checked="checked" /> <label for="enabled">logging enabled</label>
+					<br />
+					<input type="checkbox" id="traceenabled" onclick="log.setLevel(this.checked ? log4javascript.Level.TRACE : log4javascript.Level.DEBUG);" /> <label for="traceenabled">trace enabled for popup</label>
+					<br />
+					<div id="inlineLog"></div>
+				</div>
+			</div>
+			<br class="clear" />
+			<div id="footer">
+				<span class="externallinkinfo">
+					<strong>NB.</strong> All external links open in a new window.
+				</span>
+				Written by Tim Down. <a href="mailto:tim@timdown.co.uk">tim@timdown.co.uk</a>
+				<br />
+				log4javascript is distributed under the <a href="http://www.apache.org/licenses/LICENSE-2.0.html"
+					title="Apache License, Version 2.0 (opens in new window)" target="_blank">Apache License,
+					Version 2.0</a>
+			</div>
+		</div>
+	</body>
+</html>
