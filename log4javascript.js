@@ -18,13 +18,12 @@
  * log4javascript
  *
  * log4javascript is a logging framework for JavaScript based on log4j
- * for Java. This file contains all the main JavaScript code. To use
- * PopUpAppender or InlineAppender you will also need console.html,
- * included in this distribution.
+ * for Java. This file contains all core log4javascript code and is the only
+ * file required to use log4javascript.
  *
  * Author: Tim Down <tim@timdown.co.uk>
- * Version: 1.1.1
- * Last modified: 17/5/2006
+ * Version: 1.2
+ * Last modified: 21/6/2006
  * Website: http://www.timdown.co.uk/log4javascript
  */
 
@@ -319,7 +318,7 @@ var log4javascript = (function() {
 
 	// Create logging object; this will be assigned properties and returned
 	var log4javascript = {};
-	log4javascript.version = "1.1.1";
+	log4javascript.version = "1.2";
 
 	// Returns a nicely formatted representation of an error
 	function getExceptionStringRep(ex) {
@@ -340,7 +339,7 @@ var log4javascript = (function() {
 		}
 		return null;
 	}
-
+	
 	function extractBooleanFromParam(param, defaultValue) {
 		if (typeof param == "undefined") {
 			return defaultValue;
@@ -367,6 +366,14 @@ var log4javascript = (function() {
 				logLog.warn("Invalid int param " + param, ex);
 				return defaultValue;
 			}
+		}
+	}
+
+	function extractFunctionFromParam(param, defaultValue) {
+		if (typeof param == "function") {
+			return param;
+		} else {
+			return defaultValue;
 		}
 	}
 
@@ -408,6 +415,35 @@ var log4javascript = (function() {
 		}
 	};
 	log4javascript.logLog = logLog;
+	
+	/* --------------------------------------------------------------------- */
+
+	var errorListeners = [];
+
+	log4javascript.addErrorListener = function(listener) {
+		if (typeof listener == "function") {
+			errorListeners.push(listener);
+		} else {
+			handleError("addErrorListener: listener supplied was not a function");
+		}
+	};
+
+	log4javascript.removeErrorListener = function(listener) {
+		var newErrorListeners = [];
+		for (var i = 0; i < errorListeners.length; i++) {
+			if (errorListeners[i] != listener) {
+				newErrorListeners.push(errorListeners[i]);
+			}
+		}
+		errorListeners = newErrorListeners;
+	};
+
+	function handleError(message, exception) {
+		logLog.error(message, exception);
+		for (var i = 0; i < errorListeners.length; i++) {
+			errorListeners[i](message, exception);
+		}
+	}
 
 	/* --------------------------------------------------------------------- */
 
@@ -434,7 +470,7 @@ var log4javascript = (function() {
 			if (appender instanceof log4javascript.Appender) {
 				appenders.push(appender);
 			} else {
-				logLog.error("Logger.addAppender: appender supplied is not a subclass of Appender");
+				handleError("Logger.addAppender: appender supplied is not a subclass of Appender");
 			}
 		};
 
@@ -582,7 +618,7 @@ var log4javascript = (function() {
 		batchSeparator: "",
 
 		format: function(loggingEvent) {
-			logLog.error("Layout.format: layout supplied has no format() method");
+			handleError("Layout.format: layout supplied has no format() method");
 		},
 
 		getContentType: function() {
@@ -652,13 +688,13 @@ var log4javascript = (function() {
 			+ "\" level=\"" + loggingEvent.level.name
 			+ "\">" + newLine + "<log4javascript:message><![CDATA["
 			+ this.escapeCdata(loggingEvent.message)
-			+ "]]><\/log4javascript:message>" + newLine;
+			+ "]]></log4javascript:message>" + newLine;
 		if (loggingEvent.exception) {
 			str += "<log4javascript:exception><![CDATA["
 				+ getExceptionStringRep(loggingEvent.exception)
-				+ "]]><\/log4j:exception>" + newLine;
+				+ "]]></log4javascript:exception>" + newLine;
 		}
-		str += "<\/log4j:log4javascript:event>" + newLine + newLine;
+		str += "</log4javascript:event>" + newLine + newLine;
 		return str;
 	};
 
@@ -880,7 +916,7 @@ var log4javascript = (function() {
 			if (layout instanceof log4javascript.Layout) {
 				this.layout = layout;
 			} else {
-				log4javascript.LogLog.error("Appender.setLayout: layout supplied to " + this.toString()
+				log4javascript.handleError("Appender.setLayout: layout supplied to " + this.toString()
 					+ " is not a subclass of Layout");
 			}
 		},
@@ -893,7 +929,7 @@ var log4javascript = (function() {
 			if (threshold instanceof log4javascript.Level) {
 				this.threshold = threshold;
 			} else {
-				log4javascript.LogLog.error("Appender.setThreshold: threshold supplied to " + this.toString()
+				log4javascript.handleError("Appender.setThreshold: threshold supplied to " + this.toString()
 					+ " is not a subclass of Level");
 			}
 		},
@@ -936,11 +972,11 @@ var log4javascript = (function() {
 
 	// AjaxAppender
 	log4javascript.AjaxAppender = function(url, layout, timed, waitForResponse,
-			batchSize, timerInterval) {
+			batchSize, timerInterval, requestSuccessCallback, failCallback) {
 		var appender = this;
 		var isSupported = true;
 		if (!url) {
-			logLog.error("AjaxAppender: URL must be specified in constructor");
+			handleError("AjaxAppender: URL must be specified in constructor");
 			isSupported = false;
 		}
 
@@ -948,6 +984,8 @@ var log4javascript = (function() {
 		waitForResponse = extractBooleanFromParam(waitForResponse, this.defaults.waitForResponse);
 		batchSize = extractIntFromParam(batchSize, this.defaults.batchSize);
 		timerInterval = extractIntFromParam(timerInterval, this.defaults.timerInterval);
+		requestSuccessCallback = extractFunctionFromParam(requestSuccessCallback, this.defaults.requestSuccessCallback);
+		failCallback = extractFunctionFromParam(failCallback, this.defaults.failCallback);
 
 		var queuedLoggingEvents = [];
 		var queuedRequests = [];
@@ -959,7 +997,7 @@ var log4javascript = (function() {
 		// direct alteration to the appender configuration properties.
 		function checkCanConfigure(configOptionName) {
 			if (initialized) {
-				logLog.error("AjaxAppender: configuration option '" + configOptionName + "' may not be set after the appender has been initialized");
+				handleError("AjaxAppender: configuration option '" + configOptionName + "' may not be set after the appender has been initialized");
 				return false;
 			}
 			return true;
@@ -977,7 +1015,7 @@ var log4javascript = (function() {
 
 		this.isTimed = function() { return timed; };
 		this.setTimed = function(_timed) {
-			if (checkCanConfigure()) {
+			if (checkCanConfigure("timed")) {
 				timed = Boolean(_timed);
 			}
 		};
@@ -985,7 +1023,7 @@ var log4javascript = (function() {
 		this.getTimerInterval = function() { return timerInterval; };
 		this.setTimerInterval = function(_timerInterval) {
 			if (checkCanConfigure("timerInterval")) {
-				timerInterval = extractIntFromParam(_timerInterval, appender.defaults.timerInterval);
+				timerInterval = extractIntFromParam(_timerInterval, timerInterval);
 			}
 		};
 
@@ -999,8 +1037,16 @@ var log4javascript = (function() {
 		this.getBatchSize = function() { return batchSize; };
 		this.setBatchSize = function(_batchSize) {
 			if (checkCanConfigure("batchSize")) {
-				batchSize = extractIntFromParam(_batchSize, appender.defaults.batchSize);
+				batchSize = extractIntFromParam(_batchSize, batchSize);
 			}
+		};
+
+		this.setRequestSuccessCallback = function(_requestSuccessCallback) {
+			requestSuccessCallback = extractFunctionFromParam(_requestSuccessCallback, requestSuccessCallback);
+		};
+
+		this.setFailCallback = function(_failCallback) {
+			failCallback = extractFunctionFromParam(_failCallback, failCallback);
 		};
 
 		// Internal functions
@@ -1050,8 +1096,12 @@ var log4javascript = (function() {
 					try {
 						xmlHttp = new ActiveXObject("Microsoft.XMLHTTP");
 					} catch (e3) {
-						logLog.error("AjaxAppender: could not create XMLHttpRequest object. AjaxAppender disabled");
+						var msg = "AjaxAppender: could not create XMLHttpRequest object. AjaxAppender disabled";
+						handleError(msg);
 						isSupported = false;
+						if (failCallback) {
+							failCallback(msg);
+						}
 					}
 				}
 			}
@@ -1061,37 +1111,54 @@ var log4javascript = (function() {
 		function sendRequest(postData, successCallback) {
 			try {
 				var xmlHttp = getXmlHttp();
-				if (xmlHttp.overrideMimeType) {
-					xmlHttp.overrideMimeType(appender.getLayout().getContentType());
-				}
-				xmlHttp.onreadystatechange = function() {
-					if (xmlHttp.readyState == 4) {
-						var success = ((typeof xmlHttp.status == "undefined") || xmlHttp.status === 0
-							|| (xmlHttp.status >= 200 && xmlHttp.status < 300));
-						if (success) {
-							if (successCallback) {
-								successCallback(xmlHttp);
-							}
-						} else {
-							logLog.error("AjaxAppender.append: XMLHttpRequest request to URL "
-								+ url + " returned status code " + xmlHttp.status);
-						}
-						xmlHttp.onreadystatechange = emptyFunction;
-						xmlHttp = null;
+				if (isSupported) {
+					if (xmlHttp.overrideMimeType) {
+						xmlHttp.overrideMimeType(appender.getLayout().getContentType());
 					}
-				};
-				xmlHttp.open("POST", url, true);
-				try {
-					xmlHttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-				} catch (headerEx) {
-					logLog.error("AjaxAppender.append: your browser's XMLHttpRequest implementation"
-						+ " does not support setRequestHeader, therefore cannot post data. AjaxAppender disabled");
-					isSupported = false;
-					return;
+					xmlHttp.onreadystatechange = function() {
+						if (xmlHttp.readyState == 4) {
+							var success = ((typeof xmlHttp.status == "undefined") || xmlHttp.status === 0
+								|| (xmlHttp.status >= 200 && xmlHttp.status < 300));
+							if (success) {
+								if (successCallback) {
+									successCallback(xmlHttp);
+								}
+								if (requestSuccessCallback) {
+									requestSuccessCallback(xmlHttp);
+								}
+							} else {
+								var msg = "AjaxAppender.append: XMLHttpRequest request to URL "
+									+ url + " returned status code " + xmlHttp.status;
+								handleError(msg);
+								if (failCallback) {
+									failCallback(msg);
+								}
+							}
+							xmlHttp.onreadystatechange = emptyFunction;
+							xmlHttp = null;
+						}
+					};
+					xmlHttp.open("POST", url, true);
+					try {
+						xmlHttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+					} catch (headerEx) {
+						var msg = "AjaxAppender.append: your browser's XMLHttpRequest implementation"
+							+ " does not support setRequestHeader, therefore cannot post data. AjaxAppender disabled";
+						handleError(msg);
+						isSupported = false;
+						if (failCallback) {
+							failCallback(msg);
+						}
+						return;
+					}
+					xmlHttp.send(postData);
 				}
-				xmlHttp.send(postData);
 			} catch (ex) {
-				logLog.error("AjaxAppender.append: error sending log message to " + url, ex);
+				var msg = "AjaxAppender.append: error sending log message to " + url;
+				handleError(msg, ex);
+				if (failCallback) {
+					failCallback(msg + ". Details: " + getExceptionStringRep(ex));
+				}
 			}
 		}
 
@@ -1148,7 +1215,9 @@ var log4javascript = (function() {
 		waitForResponse: false,
 		timed: false,
 		timerInterval: 1000,
-		batchSize: 1
+		batchSize: 1,
+		requestSuccessCallback: null,
+		failCallback: null
 	};
 
 	log4javascript.AjaxAppender.prototype.layout = new log4javascript.HttpPostDataLayout();
@@ -1168,10 +1237,20 @@ var log4javascript = (function() {
 '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">',
 '<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">',
 '	<head>',
-'		<title>Log<\/title>',
+'		<title>Log</title>',
 '		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />',
 '		<script type="text/javascript">',
 '			//<![CDATA[',
+'			var loggingEnabled = true;',
+'',
+'			function toggleLoggingEnabled() {',
+'				setLoggingEnabled($("enableLogging").checked);',
+'			}',
+'',
+'			function setLoggingEnabled(enable) {',
+'				loggingEnabled = enable;',
+'			}',
+'',
 '			var newestAtTop = false;',
 '',
 '			function setNewestAtTop(isNewestAtTop) {',
@@ -1237,10 +1316,12 @@ var log4javascript = (function() {
 '			var messagesBeforeDocLoaded = [];',
 '			',
 '			function log(logLevel, formattedMessage) {',
-'				if (loaded) {',
-'					doLog(logLevel, formattedMessage);',
-'				} else {',
-'					messagesBeforeDocLoaded.push([logLevel, formattedMessage]);',
+'				if (loggingEnabled) {',
+'					if (loaded) {',
+'						doLog(logLevel, formattedMessage);',
+'					} else {',
+'						messagesBeforeDocLoaded.push([logLevel, formattedMessage]);',
+'					}',
 '				}',
 '			}',
 '',
@@ -1298,6 +1379,7 @@ var log4javascript = (function() {
 '',
 '			window.onload = function() {',
 '				setLogContainerHeight();',
+'				toggleLoggingEnabled();',
 '				toggleSearchEnabled();',
 '				applyFilters();',
 '				toggleWrap();',
@@ -1461,6 +1543,8 @@ var log4javascript = (function() {
 '					for (var i = 0; i < logEntries.length; i++) {',
 '						currentSearch.applyTo(logEntries[i]);',
 '					}',
+'					// The following line is a workaround for a bug in Konqueror that stops the search results displaying',
+'					doScrollToLatest();',
 '				}',
 '			}',
 '',
@@ -1595,7 +1679,7 @@ var log4javascript = (function() {
 '				return false;',
 '			}',
 '			//]]>',
-'		<\/script>',
+'		</script>',
 '		<style type="text/css">',
 '			body {',
 '				background-color: white;',
@@ -1621,7 +1705,7 @@ var log4javascript = (function() {
 '			}',
 '',
 '			div#switches input.button {',
-'				padding: 0px;',
+'				padding: 2px;',
 '				font-size: 92.66%;',
 '			}',
 '',
@@ -1670,7 +1754,7 @@ var log4javascript = (function() {
 '			}',
 '',
 '			div#log {',
-'				font-family: Courier New;',
+'				font-family: Courier New, Courier;',
 '				font-size: 100%;',
 '				width: 100%;',
 '				overflow: auto;',
@@ -1747,39 +1831,40 @@ var log4javascript = (function() {
 '				margin: 5px 0px;',
 '				line-height: 1px;',
 '			}',
-'		<\/style>',
-'	<\/head>',
+'		</style>',
+'	</head>',
 '	<body id="body">',
 '		<div id="switchesContainer">',
 '			<div id="switches">',
 '				<div id="levels">',
-'					<input type="checkbox" id="switch_TRACE" onclick="applyFilters(); checkAllLevels()" checked="checked" /><label for="switch_TRACE" id="label_TRACE">trace<\/label>',
-'					<input type="checkbox" id="switch_DEBUG" onclick="applyFilters(); checkAllLevels()" checked="checked" /><label for="switch_DEBUG" id="label_DEBUG">debug<\/label>',
-'					<input type="checkbox" id="switch_INFO" onclick="applyFilters(); checkAllLevels()" checked="checked" /><label for="switch_INFO" id="label_INFO">info<\/label>',
-'					<input type="checkbox" id="switch_WARN" onclick="applyFilters(); checkAllLevels()" checked="checked" /><label for="switch_WARN" id="label_WARN">warn<\/label>',
-'					<input type="checkbox" id="switch_ERROR" onclick="applyFilters(); checkAllLevels()" checked="checked" /><label for="switch_ERROR" id="label_ERROR">error<\/label>',
-'					<input type="checkbox" id="switch_FATAL" onclick="applyFilters(); checkAllLevels()" checked="checked" /><label for="switch_FATAL" id="label_FATAL">fatal<\/label>',
-'					<input type="checkbox" id="switch_ALL" onclick="toggleAllLevels(); applyFilters()" checked="checked" /><label for="switch_ALL" id="label_ALL">all<\/label>',
-'				<\/div>',
+'					<input type="checkbox" id="switch_TRACE" onclick="applyFilters(); checkAllLevels()" checked="checked" title="Show/hide trace messages" /><label for="switch_TRACE" id="label_TRACE">trace</label>',
+'					<input type="checkbox" id="switch_DEBUG" onclick="applyFilters(); checkAllLevels()" checked="checked" title="Show/hide debug messages" /><label for="switch_DEBUG" id="label_DEBUG">debug</label>',
+'					<input type="checkbox" id="switch_INFO" onclick="applyFilters(); checkAllLevels()" checked="checked" title="Show/hide info messages" /><label for="switch_INFO" id="label_INFO">info</label>',
+'					<input type="checkbox" id="switch_WARN" onclick="applyFilters(); checkAllLevels()" checked="checked" title="Show/hide warn messages" /><label for="switch_WARN" id="label_WARN">warn</label>',
+'					<input type="checkbox" id="switch_ERROR" onclick="applyFilters(); checkAllLevels()" checked="checked" title="Show/hide error messages" /><label for="switch_ERROR" id="label_ERROR">error</label>',
+'					<input type="checkbox" id="switch_FATAL" onclick="applyFilters(); checkAllLevels()" checked="checked" title="Show/hide fatal messages" /><label for="switch_FATAL" id="label_FATAL">fatal</label>',
+'					<input type="checkbox" id="switch_ALL" onclick="toggleAllLevels(); applyFilters()" checked="checked" title="Show/hide all messages" /><label for="switch_ALL" id="label_ALL">all</label>',
+'				</div>',
 '				<div id="search">',
-'					<label for="searchBox" class="searchBoxLabel">Search: <\/label><input type="text" id="searchBox" onclick="toggleSearchEnabled(true)" onkeyup="scheduleSearch()" size="20" />',
-'					<input type="button" id="searchReset" disabled="disabled" value="Reset" onclick="clearSearch()" class="button" />',
-'					<input type="checkbox" id="searchRegex" onclick="doSearch()" /><label for="searchRegex">Regex<\/label>',
-'					<input type="checkbox" id="searchCaseSensitive" onclick="doSearch()" /><label for="searchCaseSensitive">Match Case<\/label>',
-'					<input type="checkbox" id="searchDisable" onclick="toggleSearchEnabled()" /><label for="searchDisable" class="alwaysenabled">Disable<\/label>',
-'				<\/div>',
+'					<label for="searchBox" class="searchBoxLabel">Search: </label><input type="text" id="searchBox" onclick="toggleSearchEnabled(true)" onkeyup="scheduleSearch()" size="20" />',
+'					<input type="button" id="searchReset" disabled="disabled" value="Reset" onclick="clearSearch()" class="button" title="Reset the search" />',
+'					<input type="checkbox" id="searchRegex" onclick="doSearch()" title="If checked, search is treated as a regular expression" /><label for="searchRegex">Regex</label>',
+'					<input type="checkbox" id="searchCaseSensitive" onclick="doSearch()" title="If checked, search is case sensitive" /><label for="searchCaseSensitive">Match case</label>',
+'					<input type="checkbox" id="searchDisable" onclick="toggleSearchEnabled()" title="Enable/disable search" /><label for="searchDisable" class="alwaysenabled">Disable</label>',
+'				</div>',
 '				<div id="options">',
-'					<input type="checkbox" id="wrap" onclick="toggleWrap()" /><label for="wrap" id="wrapLabel">wrap<\/label>',
-'					<input type="checkbox" id="newestAtTop" onclick="toggleNewestAtTop()" /><label for="newestAtTop" id="newestAtTopLabel">new messages appear top<\/label>',
-'					<input type="checkbox" id="scrollToLatest" onclick="toggleScrollToLatest()" checked="checked" /><label for="scrollToLatest" id="scrollToLatestLabel">scroll to latest<\/label>',
-'					<input type="button" id="clearButton" value="Clear" onclick="clearLog()" class="button" />',
-'					<input type="button" id="closeButton" value="Close" onclick="window.close()" class="button" />',
-'				<\/div>',
-'			<\/div>',
-'		<\/div>',
-'		<div id="log" class="DEBUG INFO WARN ERROR FATAL"><\/div>',
-'	<\/body>',
-'<\/html>'
+'					<input type="checkbox" id="enableLogging" onclick="toggleLoggingEnabled()" checked="checked" title="Enable/disable logging" /><label for="enableLogging" id="wrapLabel">Log</label>',
+'					<input type="checkbox" id="wrap" onclick="toggleWrap()" title="Enable/disable word wrap" /><label for="wrap" id="wrapLabel">Wrap</label>',
+'					<input type="checkbox" id="newestAtTop" onclick="toggleNewestAtTop()" title="If checked, causes newest messages to appear at the top" /><label for="newestAtTop" id="newestAtTopLabel">Newest at the top</label>',
+'					<input type="checkbox" id="scrollToLatest" onclick="toggleScrollToLatest()" checked="checked" title="If checked, window automatically scrolls to a new message when it is added" /><label for="scrollToLatest" id="scrollToLatestLabel">Scroll to latest</label>',
+'					<input type="button" id="clearButton" value="Clear" onclick="clearLog()" class="button" title="Clear all log messages"  />',
+'					<input type="button" id="closeButton" value="Close" onclick="window.close()" class="button" title="Close the window" />',
+'				</div>',
+'			</div>',
+'		</div>',
+'		<div id="log" class="DEBUG INFO WARN ERROR FATAL"></div>',
+'	</body>',
+'</html>'
 ];
 		};
 
@@ -1822,7 +1907,7 @@ var log4javascript = (function() {
 			var appenderName = inline ? "InlineAppender" : "PopUpAppender";
 			var checkCanConfigure = function(configOptionName) {
 				if (initialized) {
-					logLog.error(appenderName + ": configuration option '" + configOptionName + "' may not be set after the appender has been initialized");
+					handleError(appenderName + ": configuration option '" + configOptionName + "' may not be set after the appender has been initialized");
 					return false;
 				}
 				return true;
@@ -1847,14 +1932,14 @@ var log4javascript = (function() {
 			this.getWidth = function() { return width; };
 			this.setWidth = function(_width) {
 				if (checkCanConfigure("width")) {
-					width = extractStringFromParam(_width, appender.defaults.width);
+					width = extractStringFromParam(_width, width);
 				}
 			};
 
 			this.getHeight = function() { return height; };
 			this.setHeight = function(_height) {
 				if (checkCanConfigure("height")) {
-					height = extractStringFromParam(_height, appender.defaults.height);
+					height = extractStringFromParam(_height, height);
 				}
 			};
 
@@ -1891,14 +1976,33 @@ var log4javascript = (function() {
 				doc.close();
 			};
 
+			var pollConsoleWindow = function(windowTest, successCallback, errorMessage) {
+				function pollConsoleWindowLoaded() {
+					try {
+						if (windowTest(getConsoleWindow())) {
+							clearInterval(poll);
+							successCallback();
+						}
+					} catch (ex) {
+						clearInterval(poll);
+						isSupported = false;
+						handleError(errorMessage, ex);
+					}
+				}
+
+				// Poll the pop-up since the onload event is not reliable
+				var poll = setInterval(pollConsoleWindowLoaded, 100);
+			}
+
 			// Define methods and properties that vary between subclasses
 			if (inline) {
 				// InlineAppender
 
 				// Extract params
-				if (!containerElement.appendChild) {
+				if (!containerElement || !containerElement.appendChild) {
 					isSupported = false;
-					logLog.error("InlineAppender.init: a container DOM element must be supplied for the console window");
+					handleError("InlineAppender.init: a container DOM element must be supplied for the console window");
+					return;
 				}
 				initiallyMinimized = extractBooleanFromParam(initiallyMinimized, appender.defaults.initiallyMinimized);
 
@@ -1914,7 +2018,8 @@ var log4javascript = (function() {
 				// Define useful variables
 				var minimized = false;
 				var iframeContainerDiv;
-				var iframe;
+				var iframeRemoved = false;
+				var iframeId = "log4javascriptInlineAppender" + consoleAppenderId;
 
 				this.hide = function() {
 					iframeContainerDiv.style.display = "none";
@@ -1929,90 +2034,83 @@ var log4javascript = (function() {
 				this.isVisible = function() {
 					return !minimized;
 				};
+				
+				this.close = function() {
+					if (!iframeRemoved) {
+						iframeContainerDiv.parentNode.removeChild(iframeContainerDiv);
+						iframeRemoved = true;
+					}
+				};
 
 				// Create init, getConsoleWindow and safeToAppend functions
 				init = function() {
+					var initErrorMessage = "InlineAppender.init: unable to create console iframe"; 
 					function finalInit() {
 						try {
-							writeHtml(getConsoleWindow().document);
-							consoleWindowLoaded = true;
 							getConsoleWindow().setNewestAtTop(newestMessageAtTop);
 							getConsoleWindow().setScrollToLatest(scrollToLatestMessage);
+							consoleWindowLoaded = true;
 							appendQueuedLoggingEvents();
+							if (initiallyMinimized) {
+								appender.hide();
+							}
 						} catch (ex) {
 							isSupported = false;
-							logLog.error("InlineAppender.init: unable to create console iframe", ex);
+							handleError(initErrorMessage, ex);
 						}
 					}
 
-					function pollConsoleWindow() {
-						function pollConsoleWindowLoaded() {
-							try {
-								if (getConsoleWindow()) {
-									clearInterval(poll);
-									finalInit();
-								}
-							} catch (ex) {
-								clearInterval(poll);
-								isSupported = false;
-								logLog.error("InlineAppender.init: unable to create console iframe", ex);
+					function writeToDocument() {
+						try {
+							var windowTest = function(win) { return Boolean(win.loaded); };
+							writeHtml(getConsoleWindow().document);
+							if (windowTest(getConsoleWindow())) {
+								finalInit();
+							} else {
+								pollConsoleWindow(windowTest, finalInit, initErrorMessage);
 							}
+						} catch (ex) {
+							isSupported = false;
+							handleError(initErrorMessage, ex);
 						}
-
-						// Poll the pop-up since the onload event is not reliable
-						var poll = setInterval(pollConsoleWindowLoaded, 100);
 					}
-
+					
 					minimized = initiallyMinimized;
 					iframeContainerDiv = containerElement.appendChild(document.createElement("div"));
 
-					var iframeId = "log4javascriptInlineAppender" + consoleAppenderId;
-
-					iframe = document.createElement("iframe");
-					iframe.width = width;
-					iframe.height = height;
-					iframe.frameBorder = 0;
-					iframe.style.border = "solid gray 1px";
-					iframe.scrolling = "no";
-					iframeContainerDiv.appendChild(iframe);
-
-					// For IE5 Windows, which doesn't work too well when adding iframes via the DOM:
-					if (getConsoleWindow() && getConsoleWindow().document
-							&& (getConsoleWindow().document == document)) {
-						iframeContainerDiv.removeChild(iframe);
-						var iframeHtml = "<iframe id='" + iframeId + "' width='"
-							+ width + "' height='" + height + "' frameborder='0'"
-							+ "scrolling='no' style='border: solid gray 1px'><\/iframe>";
-						iframeContainerDiv.innerHTML = iframeHtml;
-						iframe = window.frames[iframeId];
-					}
-
-					if (getConsoleWindow() && getConsoleWindow().loaded) {
-						finalInit();
+					iframeContainerDiv.style.width = "" + width + "px";
+					iframeContainerDiv.style.height = "" + height + "px";
+					iframeContainerDiv.style.border = "solid gray 1px";
+					
+					// Adding an iframe using the DOM would be preferable, but it doesn't work
+					// in IE5 on Windows, or in Konqueror prior to version 3.5 - in Konqueror
+					// it creates the iframe fine but I haven't been able to find a way to obtain
+					// the window object
+					var iframeHtml = "<iframe id='" + iframeId + "' name='" + iframeId
+						+ "' width='100%' height='100%' frameborder='0'"
+						+ "scrolling='no'></iframe>";
+					iframeContainerDiv.innerHTML = iframeHtml;
+					
+					// Write the console HTML to the iframe
+					var iframeDocumentExistsTest = function(win) { return Boolean(win && win.document); };
+					if (iframeDocumentExistsTest(getConsoleWindow())) {
+						writeToDocument();
 					} else {
-						pollConsoleWindow();
+						pollConsoleWindow(iframeDocumentExistsTest, writeToDocument, initErrorMessage);
 					}
-
-					if (initiallyMinimized) {
-						appender.hide();
-					} else {
-						appender.show();
-					}
+					
 					initialized = true;
 				};
 
 				getConsoleWindow = function() {
-					if (iframe.contentWindow) {
-						return iframe.contentWindow;
-					} else if (iframe.contentDocument && iframe.contentDocument.defaultView) {
-						return iframe.contentDocument.defaultView;
-					} else if (iframe.document && iframe.document.parentWindow) {
-						return iframe.document.parentWindow;
+					var iframe = window.frames[iframeId];
+					if (iframe) {
+						return iframe;
 					}
 				};
 
 				safeToAppend = function() {
-					if (isSupported) {
+					if (isSupported && !iframeRemoved) {
 						if (!consoleWindowLoaded && getConsoleWindow() && getConsoleWindow().loaded) {
 							consoleWindowLoaded = true;
 						}
@@ -2048,6 +2146,14 @@ var log4javascript = (function() {
 					// This property can be safely altered after logging has started
 					focusConsoleWindow = Boolean(_focusPopUp);
 				};
+				
+				this.close = function() {
+					try {
+						popUp.close();
+					} catch (e) {
+					}
+					popUpClosed = true;
+				}
 
 				// Define useful variables
 				var popUp;
@@ -2069,27 +2175,28 @@ var log4javascript = (function() {
 					try {
 						popUp = window.open("", windowName, windowProperties);
 						if (popUp) {
-							if (useOldPopUp) {
-								if (popUp.loaded) {
-									popUp.mainPageReloaded();
-									finalInit();
-								} else {
-									writeHtml(popUp.document);
-									finalInit();
-								} 
+							if (useOldPopUp && popUp.loaded) {
+								popUp.mainPageReloaded();
+								finalInit();
 							} else {
 								writeHtml(popUp.document);
-								finalInit();
+								// Check if the pop-up window object is available
+								var popUpLoadedTest = function(win) { return Boolean(win) && win.loaded; };
+								if (popUp.loaded) {
+									finalInit();
+								} else {
+									pollConsoleWindow(popUpLoadedTest, finalInit, "PopUpAppender.init: unable to create console window");
+								}
 							}
 						} else {
 							isSupported = false;
 							logLog.warn("PopUpAppender.init: pop-ups blocked, please unblock to use PopUpAppender");
 							if (complainAboutPopUpBlocking) {
-								alert("Pop-up windows appear to be blocked. Please unblock them to use pop-up logging");
+								handleError("log4javascript: pop-up windows appear to be blocked. Please unblock them to use pop-up logging.");
 							}
 						}
 					} catch (ex) {
-						logLog.error("PopUpAppender.init: error creating popup", ex);
+						handleError("PopUpAppender.init: error creating pop-up", ex);
 					}
 					initialized = true;
 				};

@@ -124,15 +124,15 @@ table {
 }
 
 /* Code */
+pre, code {
+	font-family: Courier New, Courier;
+	font-size: 108.33%;
+}
+
 pre.code {
 	border: solid 1px #cccccc;
 	background-color: #eeeeee;
-	font-size: 116.66%;
 	padding: 3px;
-}
-
-code {
-	font-size: 116.66%;
 }
 
 div.example {

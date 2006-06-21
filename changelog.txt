@@ -1,14 +1,37 @@
 log4javascript change log
 -------------------------
 
+1.2 (21/6/2006)
+- Tested in and added workaround for a bug in Opera 9 Beta 2 and Opera 9.0
+- Tested in Konqueror 3.4 and 3.5 and added workarounds and fixes for browser
+  bugs
+- Added addErrorListener and removeErrorListener methods to log4javascript
+  object to allow custom error handling
+- Added close() method to PopUpAppender and InlineAppender
+- Added test directory with an HTML page containing automated tests
+- Added enable/disable logging checkbox to InlinePopUpAppender and PopUpAppender
+  so that unnecessary messages (for instance, from a timer) can be ignored
+- An invalid value supplied to a configuration option setter now leaves config
+  property unchanged rather than reverting to the default
+- Fixed bug in PopUpAppender in IE on Windows XP Service Pack 2 when accessed
+  via the file system. The browser by default disables JavaScript in the pop-up
+  window until the user opts to enable it, at which point they would previously
+  see an uncaught error in log4javascript. Now, a proper error message is
+  displayed and the appender is disabled.
+- Slight alterations to toolbar in InlinePopUpAppender and PopUpAppender - text
+  capitalization and title attributes added to inputs
+- toString() method added to all appenders
+- correction to errors in XmlLayout's output
+- documentation corrections and additions
+
 1.1.1 (17/5/2006)
 - Fixed a minor bug with scrolling to the latest message and added "scroll to
-  latest" checkbox to console window in InlinePopUpAppender and PopUpAppender.
+  latest" checkbox to console window in InlinePopUpAppender and PopUpAppender
 
 1.1 (16/5/2006)
 - Added configuration option setters on Appenders and refactored to prevent
   config properties being altered directly. Several configuration options
-  may not be altered after the appender has been initialized.
+  may not be altered after the appender has been initialized
 - Added scrollToLatestMessage constructor parameter, isScrollToLatestMessage
   and setScrollToLatestMessage methods to InlineAppender and PopUpAppender
 - Added isVisible method to InlineAppender
@@ -25,10 +48,10 @@ log4javascript change log
 1.0.1 (30/4/2006)
 - Option to have new log messages appear at the top added to InlineAppender and
   PopUpAppender. This option can be specified in the constructor and can also
-  be toggled via a checkbox in the console window.
+  be toggled via a checkbox in the console window
 - PopUpAppender changed to not focus the pop-up console window by default, and
   the demo page altered to create its own logger with focussing turned on,
-  meaning the behaviour in the demo is essentially unchanged.
+  meaning the behaviour in the demo is essentially unchanged
 
 1.0 (26/4/2006)
 - Tweaks to default values in PopUpAppender and InlineAppender

@@ -67,8 +67,7 @@
 				<div id="whofor">
 					<h2>Who it's for</h2>
 					<p>
-						log4javascript is aimed at JavaScript developers. It can be used to debug
-						JavaScript applications of all sizes, including Ajax applications.
+						log4javascript is aimed at JavaScript developers.
 					</p>
 					<p class="linktotop">
 						<a href="#container">Top</a>
@@ -98,18 +97,23 @@
 				</div>
 				<div id="browsers">
 					<h2>Browser support</h2>
-					<h3>Currently supported browsers:</h3>
+					<h3>Fully supported browsers:</h3>
 					<ul>
-						<li>Firefox and Mozilla-based browsers, as far back as Netscape 7</li>
+						<li>All versions Firefox back to 0.6</li>
+						<li>Other Mozilla-based browsers, as far back as Netscape 7</li>
 						<li>Internet Explorer 5 and higher for Windows</li>
 						<li>Safari 1.3 and higher (untested on earlier versions)</li>
-						<li>Opera 7.5 and higher</li>
+						<li>Opera 8.01 and higher (pre- version 9 browsers have a rendering
+							bug related to scrolling that affects searching in PopUpAppender and InlineAppender)</li>
+						<li>Konqueror 3.4.3 and higher (untested on earlier versions)</li>
 					</ul>
-					<p>
-						Note that <code><a href="manual.html#ajaxappender">AjaxAppender</a></code>
-						only works in browsers that support <code>XMLHttpRequest</code>, including
-						<code>setRequestHeader</code>. This rules out Opera up to version 8.01.
-					</p>
+					<h3>Partially supported browsers:</h3>
+					<ul>
+						<li>Older Mozilla-based browsers, e.g. Netscape 6.2 (generally OK except for
+							display problems searching and filtering PopUpAppender and InlineAppender)</li>
+						<li>Opera 7.0 - 8.0 (InlineAppender not supported until version 7.5, plus some display
+							problems searching PopUpAppender and InlineAppender. AjaxAppender not supported at all)</li>
+					</ul>
 					<h3>Unsupported browsers:</h3>
 					<ul>
 						<li>
@@ -119,7 +123,7 @@
 					</ul>
 					<p>
 						I would welcome any information about whether log4javascript works in other browsers
-						(particularly Safari prior to version 1.3).
+						(particularly Safari prior to version 1.3 and Konqueror prior to version 3.4.3).
 					</p>
 					<p class="linktotop">
 						<a href="#container">Top</a>

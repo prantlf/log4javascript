@@ -25,8 +25,8 @@
 				<h1>log4javascript manual</h1>
 				<h2>Contents</h2>
 				<ul>
-					<li><a href="#noteaboutlog4javascript">Note about the log4javascript object</a></li>
 					<li><a href="#intro">Introduction</a></li>
+					<li><a href="#noteaboutlog4javascript">Note about the log4javascript object</a></li>
 					<li>
 						<a href="#loggersappenderslayoutslevels">Loggers, appenders, layouts and levels</a>
 						<ul>
@@ -68,21 +68,6 @@
 					</li>
 					<li><a href="#differences">Differences between log4javascript and log4j</a></li>
 				</ul>
-				
-				<div id="noteaboutlog4javascript">
-					<h2>Note about the log4javascript object</h2>
-					<p>
-						All of log4javascript's instantiable classes are accessible via the log4javascript object, which
-						acts as a namespace. Therefore references to all class names must be preceded with "log4javascript.".
-						For example:
-					</p>
-					<p>
-						<code>var popUpAppender = new log4javascript.PopUpAppender();</code>
-					</p>
-					<p class="linktotop">
-						<a href="#container">Top</a>
-					</p>
-				</div>
 				<div id="intro">
 					<h2>Introduction</h2>
 					<p>
@@ -116,8 +101,23 @@
 						It is not even the only JavaScript implementation of log4j, although many of the
 						others have sprung up in the last year or so, during which time I had a half-written
 						version of log4javascript that I had intended to call log4js but never got round to
-						completing. The name log4js is now used by at least two other pieces of software;
-						log4javascript is unrelated to either.
+						completing. I have recently discovered that the name log4javascript is used by
+						another JavaScript logging framework, and that the name log4js is now used by at least
+						two other pieces of software; this version of log4javascript is unrelated to any of those.
+					</p>
+					<p class="linktotop">
+						<a href="#container">Top</a>
+					</p>
+				</div>
+				<div id="noteaboutlog4javascript">
+					<h2>Note about the log4javascript object</h2>
+					<p>
+						All of log4javascript's instantiable classes are accessible via the log4javascript object, which
+						acts as a namespace. Therefore references to all class names must be preceded with "log4javascript.".
+						For example:
+					</p>
+					<p>
+						<code>var popUpAppender = new log4javascript.PopUpAppender();</code>
 					</p>
 					<p class="linktotop">
 						<a href="#container">Top</a>
@@ -170,24 +170,24 @@
 						<ul>
 							<li>
 								<p>
-									<strong>constructor parameters</strong>
+									<strong>Constructor parameters</strong>
 								</p>
 								<p>
 									For example: <code>var p = new log4javascript.PopUpAppender(null, true, true, true, true, false, 600, 400);</code>
 								</p>
 								<p>
-									This has the advatage of being fairly concise and gets all the configuration out of the
+									This has the advantage of being fairly concise and gets all the configuration out of the
 									way in one fell swoop, but has two big disadvantages: firstly,
 									it's not very readable as you either have to remember a fairly long list of
-									contructor parameters or refer to the documentation. Secondly, if the default configuration
+									constructor parameters or refer to the documentation. Secondly, if the default configuration
 									values are fine for your purposes except for one, you still have to enter all the other
 									parameters in the constructor. To ease the pain slightly, log4javascript interprets
-									<code>null</code> parameters in appender constructors to mean "use the default, please".
+									<code>null</code> parameters in appender constructors to mean "use the default".
 								</p>
 							</li>
 							<li>
 								<p>
-									<strong>setters</strong>
+									<strong>Setters</strong>
 								</p>
 								<p>
 									For example: <code>var p = new log4javascript.PopUpAppender(); p.setFocusPopUp(true);</code>
@@ -195,7 +195,7 @@
 								<p>
 									This is much more readable and reduces the need to refer to documentation, but has the
 									disadvantage of being rather verbose if more than one or two configuration properties
-									differ from the default. In general, this is probably the better way to configure
+									differ from the default. In general, however, this is probably the better way to configure
 									appenders.
 								</p>
 								<p>
@@ -228,8 +228,8 @@
 							Since the lifespan of the messages displayed in the pop-up is only going to be the
 							same as that of the window, a <code><a href="#patternlayout">PatternLayout</a></code>
 							is used that displays the time of the message and not the date (note that this is
-							also true of <code>PopUpAppender</code>'s default layout). The format of the string passed into
-							<code>PatternLayout</code> is explained <code><a href="#patternlayout">below</a></code>.
+							also true of PopUpAppender's default layout). The format of the string passed into
+							PatternLayout is explained <code><a href="#patternlayout">below</a></code>.
 						</p>
 						<pre class="code">
 	var popUpAppender = new log4javascript.PopUpAppender();
@@ -292,6 +292,12 @@
 								The version number of your copy of log4javascript.
 							</div>
 						</li>
+						<li class="property">
+							<div class="name">logLog</div>
+							<div class="summary">
+								log4javascript's internal logging object. <a href="#loglog">See below for more details</a>.
+							</div>
+						</li>
 					</ul>
 					<h4>Methods</h4>
 					<ul class="propertieslist">
@@ -346,6 +352,36 @@
 							<div class="methodsignature"><code>Boolean <strong>isEnabled</strong>()</code></div>
 							<div class="summary">
 								Returns true or false depending on whether logging is enabled.
+							</div>
+						</li>
+						<li class="method">
+							<div class="name">addErrorListener</div>
+							<div class="methodsignature"><code>void <strong>addErrorListener</strong>(Function <em>listener</em>)</code></div>
+							<div class="paramsheading">Parameters:</div>
+							<ul class="params">
+								<li class="param">
+									<code class="paramname">listener</code>
+								</li>
+							</ul>
+							<div class="summary">
+								Add a function to be called when an error occurs in log4javascript. Each listener
+								is passed one or two parameters: <code>message</code> is always passed and is the
+								error-specific message, and <code>exception</code>, which is the original Error object,
+								if one exists.
+							</div>
+						</li>
+						<li class="method">
+							<div class="name">removeErrorListener</div>
+							<div class="methodsignature"><code>void <strong>removeErrorListener</strong>(Function <em>listener</em>)</code></div>
+							<div class="paramsheading">Parameters:</div>
+							<ul class="params">
+								<li class="param">
+									<code class="paramname">listener</code>
+								</li>
+							</ul>
+							<div class="summary">
+								Removes a function from the list of functions called when an error occurs in
+								log4javascript.
 							</div>
 						</li>
 					</ul>
@@ -621,6 +657,13 @@
 									Returns the appender's threshold.
 								</div>
 							</li>
+							<li class="method">
+								<div class="name">toString</div>
+								<div class="methodsignature"><code>string <strong>toString</strong>()</code></div>
+								<div class="summary">
+									Returns a string representation of the appender.
+								</div>
+							</li>
 						</ul>
 						<p class="linktotop">
 							<a href="#container">Top</a>
@@ -685,7 +728,7 @@
 							<li>
 								AjaxAppender relies on the <code>XMLHttpRequest</code> object. It also requires
 								the presence of correctly implemented <code>setRequestHeader</code> method on
-								this object, which rules Opera up to version 8.01. If your browser does not
+								this object, which rules Opera prior to version 8.01. If your browser does not
 								support the necessary objects then one alert will display to explain why it
 								doesn't work, after which the appender will silently switch off.
 							</li>
@@ -701,7 +744,8 @@
 								<div class="methodsignature">
 									<code><strong>AjaxAppender</strong>(String <em>url</em>, Layout <em>layout</em>,
 									Boolean <em>timed</em>, Boolean <em>waitForResponse</em>,
-									Number <em>batchSize</em>, Number <em>timerInterval</em>)</code>
+									Number <em>batchSize</em>, Number <em>timerInterval</em>,
+									Function <em>requestSuccessCallback</em>, Function <em>failCallback</em>)</code>
 								</div>
 								<div class="paramsheading">Parameters:</div>
 								<ul class="params">
@@ -709,7 +753,7 @@
 										<code class="paramname">url</code> 
 										<div>
 											The URL to which log messages should be sent. Note that this is subject
-											to the usual restrictions: the URL should be in the same domain as that
+											to the usual Ajax restrictions: the URL should be in the same domain as that
 											of the page making the request.
 										</div>
 									</li>
@@ -788,6 +832,37 @@
 											</ul>
 										</div>
 									</li>
+									<li class="param">
+										<code class="paramname">requestSuccessCallback</code> 
+										[<em>optional</em>]
+										<div>
+											<p>
+												A function that is called whenever a successful request is made, called at the
+												point at which the response is received. This feature can be used to confirm
+												whether request have been successful and act accordingly.
+											</p>
+											<p>
+												A single parameter, <code>xmlHttp</code>, is passed to the callback function.
+												This is the XMLHttpRequest object that performed the request.
+											</p>
+										</div>
+									</li>
+									<li class="param">
+										<code class="paramname">failCallback</code> 
+										[<em>optional</em>]
+										<div>
+											<p>
+												A function that is called whenever any kind of failure occurs in the appender,
+												including browser deficiencies or configuration errors (e.g. supplying a
+												non-existent URL to the appender). This feature can be used to handle
+												AjaxAppender-specific errors.
+											</p>
+											<p>
+												A single parameter, <code>message</code>, is passed to the callback function.
+												This is the error-specific message that caused the failure.
+											</p>
+										</div>
+									</li>
 								</ul>
 							</li>
 						</ul>
@@ -862,6 +937,22 @@
 								</div>
 							</li>
 							<li class="method">
+								<div class="name">setRequestSuccessCallback</div>
+								<div class="methodsignature"><code>void <strong>setRequestSuccessCallback</strong>(Function <em>requestSuccessCallback</em>)</code></div>
+								<div class="summary">
+									Sets the function that is called whenever a successful request is made. See constructor
+									for more details.
+								</div>
+							</li>
+							<li class="method">
+								<div class="name">setFailCallback</div>
+								<div class="methodsignature"><code>void <strong>setFailCallback</strong>(Function <em>failCallback</em>)</code></div>
+								<div class="summary">
+									Sets the function that is called whenever any kind of failure occurs in the appender.
+									See constructor for more details.
+								</div>
+							</li>
+							<li class="method">
 								<div class="name">sendAll</div>
 								<div class="methodsignature"><code>void <strong>sendAll</strong>()</code></div>
 								<div class="summary">
@@ -893,7 +984,10 @@
 								A search may also be enabled or disabled once created, and is also applied (if
 								enabled) to all log messages dynamically as they are added to the pop-up;
 							</li>
-							<li>Clear button to all user to delete all current log messages.</li>
+							<li>switch to toggle between logging from the top down and from the bottom up;</li>
+							<li>switch to turn automatic scrolling when a new message is logged on and off;</li>
+							<li>switch to turn off all logging to the pop-up (useful if a timer is generating unnecessary log messages);</li>
+							<li>clear button to allow user to delete all current log messages.</li>
 						</ul>
 						<h4>Constructor</h4>
 						<ul class="propertieslist">
@@ -1120,6 +1214,13 @@
 									Sets the outer height in pixels of the pop-up window.
 								</div>
 							</li>
+							<li class="method">
+								<div class="name">close</div>
+								<div class="methodsignature"><code>void <strong>close</strong>()</code></div>
+								<div class="summary">
+									Closes the pop-up window.
+								</div>
+							</li>
 						</ul>
 						<p class="linktotop">
 							<a href="#container">Top</a>
@@ -1132,30 +1233,6 @@
 							to that used by the <code><a href="#popupappender">PopUpAppender</a></code>, except
 							for the absence of a 'Close' button.
 						</p>
-						<!--
-							For some reason Opera now works fine without the workaround. I'm not
-							inclined to poke around too deeply to find out why.
-						-->
-						<!--
-						<p><strong>Notes</strong></p>
-						<ul>
-							<li>
-								Because the console must be added to a pre-existing HTML element in the DOM tree,
-								<strong>this type of appender can only be created after the page has loaded</strong>.
-							</li>
-							<li>
-								Opera, at least up to version 8.54, forces log4javascript to first request
-								a non-existent page from the current domain before the console window will load, causing
-								a brief flicker of a 404 error message and an unnecessary HTTP request to the server. The
-								reason for this is that while all major browsers do not allow script to write to the
-								document of an <code>iframe</code> from a different domain to the current document, only
-								Opera extends this restriction to an <code>iframe</code> with no <code>src</code> attribute
-								or a <code>src</code> of <code>about:blank</code>. Therefore the workaround (applied to
-								Opera only) is to give the <code>iframe</code> created for the inline console window a
-								<code>src</code> of "log4javascript_dummy.html" and the restriction is lifted.
-							</li>
-						</ul>
-						-->
 						<h4>Constructor</h4>
 						<ul class="propertieslist">
 							<li class="method">
@@ -1361,6 +1438,13 @@
 									</ul>
 								</div>
 							</li>
+							<li class="method">
+								<div class="name">close</div>
+								<div class="methodsignature"><code>void <strong>close</strong>()</code></div>
+								<div class="summary">
+									Removes the console window iframe from the main document.
+								</div>
+							</li>
 						</ul>
 						<p class="linktotop">
 							<a href="#container">Top</a>
@@ -1451,7 +1535,7 @@
 						<h3>PatternLayout</h3>
 						<p>
 							Provides a flexible way of formatting a log message by means of a conversion pattern
-							string. This behaviour of this layout full implementation of <code>PatternLayout</code>
+							string. The behaviour of this layout is a full implementation of <code>PatternLayout</code>
 							in log4j, with the exception of the set of conversion characters - log4javascript's is
 							necessarily a subset of that of log4j, since many of the conversion characters in log4j
 							only make sense in the context of Java.
@@ -1495,7 +1579,7 @@
 											The date format specifier is the same as that used by Java's
 											<code><a href="http://java.sun.com/j2se/1.5.0/docs/api/java/text/SimpleDateFormat.html"
 												target="_blank">SimpleDateFormat</a></code>. log4javascript
-											includes a full implementation of <code>SimpleDateFormat</code>'s 
+											includes a full implementation of SimpleDateFormat's 
 											<code>format</code> method, with the exception of the pattern letter
 											'z', (string representation of the timezone) for which the information
 											is not available in JavaScript.
@@ -1609,8 +1693,8 @@
 &lt;log4javascript:event logger="[default]" timestamp="1146007499" level="ERROR"&gt;
 &lt;log4javascript:message&gt;&lt;![CDATA[Big problem!]]&gt;&lt;/log4javascript:message&gt;
 &lt;log4javascript:exception&gt;&lt;![CDATA[Nasty error on line number 1
-	in file http://www.timdown.co.uk/index.php]]&gt;&lt;/log4j:exception&gt;
-&lt;/log4j:log4javascript:event&gt;
+	in file http://www.timdown.co.uk/index.php]]&gt;&lt;/log4javascript:exception&gt;
+&lt;/log4javascript:event&gt;
 </pre>
 						<p><strong>Notes</strong></p>
 						<ul>
@@ -1620,11 +1704,11 @@
 								messages is simply concatenated to form a string of several XML
 								frgaments similar to that above.
 							</li>
+							<li>
+								The <code>&lt;log4javascript:exception&gt;</code> element is only present if an
+								exception was passed into the original log call.
+							</li>
 						</ul>
-						<p>
-							The <code>&lt;log4javascript:exception&gt;</code> element is only present if an
-							exception was passed into the original log call.
-						</p>
 						<h4>Constructor</h4>
 						<ul class="propertieslist">
 							<li class="method">
@@ -1744,8 +1828,8 @@
 						<ul class="propertieslist">
 							<li class="method">
 								<div class="name">HttpPostDataLayout</div>
-								<div class="methodsignature"><code><strong>HttpPostDataLayout</strong>(
-									String <em>loggerKey</em>, String <em>timeStampKey</em>, String <em>levelKey</em>,
+								<div class="methodsignature"><code><strong>HttpPostDataLayout</strong>(String <em>loggerKey</em>,
+									String <em>timeStampKey</em>, String <em>levelKey</em>,
 									String <em>messageKey</em>, String <em>exceptionKey</em>, String <em>urlKey</em>)</code>
 								</div>
 								<ul class="params">
@@ -1926,7 +2010,7 @@
 								</ul>
 								<div class="summary">
 									Generates an alert to the user if and only if the error is the first one
-									encountered and <code>setShowOneError(false)</code> has not been called.
+									encountered and <code>setShowAllErrors(true)</code> has not been called.
 								</div>
 							</li>
 						</ul>
