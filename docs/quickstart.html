@@ -19,7 +19,8 @@
 					<a class="navitem" href="index.html">docs</a>
 					| <span class="navitem">quick start</span>
 					| <a class="navitem" href="manual.html">manual</a>
-					| <a class="navitem" href="../examples/demo.html">demo</a>
+					| <a class="navitem" href="../demos/basic.html">basic demo</a>
+					| <a class="navitem" href="../demos/full.html">full demo</a>
 					| <a class="navitem" href="http://www.timdown.co.uk/log4javascript" target="_blank">website</a>
 				</div>
 				<h1>log4javascript quick start tutorial</h1>
@@ -91,9 +92,8 @@
 				<pre class="code">
 &lt;script type="text/javascript" src="log4javascript.js"&gt;&lt;/script&gt;
 &lt;script type="text/javascript"&gt;
-	// Create the logger. "mylogger" is the unique name of the logger and
-	// can be any string.
-	var log = log4javascript.getLogger("mylogger"); 
+	// Create the logger
+	var log = log4javascript.getLogger(); 
 
 	// Create a PopUpAppender with default options
 	var popUpAppender = new log4javascript.PopUpAppender();
@@ -109,6 +109,10 @@
 	log.debug("Hello world!");
 &lt;/script&gt;
 </pre>
+				<p>
+					<a href="../examples/example_quickstart_1.html" title="View example (opens in new window)"
+						target="_blank">See this example in action</a> (opens in new window)
+				</p>
 				<p>
 					Refer to the manual for more information about
 					<a href="manual.html#configuration">configuring appenders</a> and more
@@ -162,7 +166,9 @@
 				log4javascript is distributed under the <a href="http://www.apache.org/licenses/LICENSE-2.0.html"
 					title="Apache License, Version 2.0 (opens in new window)" target="_blank">Apache License,
 					Version 2.0</a>
+<!--build:sflogo-->	
 			</div>
 		</div>
+<!--build:googleanalytics-->	
 	</body>
 </html>

@@ -3,190 +3,28 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 	<head>
 		<title>log4javascript - Tests</title>
-		<script type="text/javascript" src="../log4javascript.js"></script>
-		<script type="text/javascript">
-			//<![CDATA[
-			var ajaxResponseText = null;
-			var ajaxResponseReceived = false;
-			var ajaxErrorMessage = "";
-			
-			var logMessageText = "Hello world!";
-			var expectedResponseText = "test";
-			
-			function errorHandler(message, exception) {
-				throw new Error(message);
-			}
-			
-			var haveRunTests = false;
-			function runTestsOnce() {
-				if (!haveRunTests) {
-					runTests();
-				}
-				haveRunTests = true;
-			}
-			
-			var log;
-			
-			function setUpPage() {
-				log = log4javascript.getLogger("mylogger");
-				log4javascript.logLog.setQuietMode(true);
-				log.setLevel(log4javascript.Level.DEBUG);
-
-				// Create and add an Ajax appender
-				var ajaxAppender = new log4javascript.AjaxAppender("ajaxappender.txt");
-				ajaxAppender.setLayout(new log4javascript.JsonLayout());
-				ajaxAppender.setRequestSuccessCallback(
-					function(xmlHttp) {
-						ajaxResponseReceived = true;
-						ajaxResponseText = xmlHttp.responseText;
-						setUpPageStatus = "complete";
-						runTestsOnce();
-					}
-				);
-				ajaxAppender.setFailCallback(
-					function(msg) {
-						ajaxResponseReceived = false;
-						ajaxErrorMessage = msg;
-						setUpPageStatus = "complete";
-						runTestsOnce();
-					}
-				);
-				ajaxAppender.setThreshold(log4javascript.Level.DEBUG);
-				log.addAppender(ajaxAppender);
-				log.debug(logMessageText);
-			}
-			
-			function fail(errorMessage) {
-				var div = document.createElement("h2");
-				var textNode = document.createTextNode("TEST FAILED: " + errorMessage);
-				div.appendChild(textNode);
-				document.getElementById("messages").appendChild(div);
-				throw new Error(errorMessage);
-			}
-			
-			function pass(testName) {
-				var div = document.createElement("div");
-				var textNode = document.createTextNode("Test passed: " + testName);
-				div.appendChild(textNode);
-				document.getElementById("messages").appendChild(div);
-			}
-			
-			function allPassed() {
-				var div = document.createElement("h2");
-				var textNode = document.createTextNode("ALL TESTS PASSED!");
-				div.appendChild(textNode);
-				document.getElementById("messages").appendChild(div);
-				document.body.className = "success";
-			}
-			
-			function runTests() {
-				var testNames = exposeTestFunctionNames();
-				try {
-					for (var i = 0; i < testNames.length; i++) {
-						var f = window[testNames[i]];
-						f();
-						pass(testNames[i]);
-					}
-					allPassed();
-				} catch (e) {
-					return;
-				}
-			}
-
-			function assertTrue(errorMessage, item) {
-				if (!item) {
-					fail(errorMessage);
-					return false;
-				} else {
-					return true;
-				}
-			}
-			
-			function assertEquals(errorMessage, item1, item2) {
-				if (item1 != item2) {
-					fail(errorMessage);
-					return false;
-				} else {
-					return true;
-				}
-			}
-			
-			function exposeTestFunctionNames() {
-				return ["testPopUp", "testInline", "testAjaxReceivedResponse", "testAjaxResponseText"];
-			}
-			
-			function testInline() {
-				log4javascript.addErrorListener(errorHandler);
-				var inlineAppender;
-				try {
-					inlineAppender = new log4javascript.InlineAppender(document.getElementById("inlineAppenderContainer"));
-					inlineAppender.setInitiallyMinimized(false);
-					inlineAppender.setNewestMessageAtTop(false);
-					inlineAppender.setScrollToLatestMessage(true);
-					inlineAppender.setWidth(400);
-					inlineAppender.setHeight(200);
-					log.addAppender(inlineAppender);
-					log.info("Testing InlineAppender");
-					inlineAppender.hide();
-					inlineAppender.show();
-					inlineAppender.close();
-					log.info("Testing InlineAppender again");
-				} catch (e) {
-					fail(e.message);
-				} finally {
-					inlineAppender.close();
-					log4javascript.removeErrorListener(errorHandler);
-				}
-			}
-
-			function testPopUp() {
-				log4javascript.addErrorListener(errorHandler);
-				var popUpAppender;
-				try {
-					popUpAppender = new log4javascript.PopUpAppender();
-					popUpAppender.setFocusPopUp(true);
-					popUpAppender.setUseOldPopUp(false);
-					popUpAppender.setNewestMessageAtTop(false);
-					popUpAppender.setScrollToLatestMessage(true);
-					popUpAppender.setComplainAboutPopUpBlocking(true);
-					popUpAppender.setWidth(400);
-					popUpAppender.setHeight(300);
-					log.addAppender(popUpAppender);
-					log.info("Testing PopUpAppender");
-					popUpAppender.close();
-					log.info("Testing PopUpAppender again");
-				} catch (e) {
-					fail(e.message);
-				} finally {
-					popUpAppender.close();
-					log4javascript.removeErrorListener(errorHandler);
-				}
-			}
-
-			function testAjaxReceivedResponse() {
-				assertTrue(ajaxErrorMessage, ajaxResponseReceived);
-			}
-
-			function testAjaxResponseText() {
-				assertEquals(ajaxErrorMessage, ajaxResponseText, expectedResponseText);
-			}
-
-			window.onload = setUpPage;
-			
-			//]]>
-		</script>
 		<style type="text/css">
-			body {
-				background-color: #cc6666;
+			html {
+				height: 100%;
 			}
-
-			body.success {
-				background-color: #66cc66;
+		
+			body {
+				font-family: verdana, arial, helvetica, sans-serif;
+				font-size: 81.25%;
+				height: 100%;
+			}
+			
+			iframe {
+				height: 40%;
+				width: 90%;
+				margin: 5px;
 			}
 		</style>
 	</head>
 	<body>
-		<div id="messages"></div>
-		<div id="inlineAppenderContainer"></div>
+		<iframe src="main.html"></iframe>
+		<iframe src="main_uncompressed.html"></iframe>
+<!--build:sflogo-->	
+<!--build:googleanalytics-->	
 	</body>
 </html>

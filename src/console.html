@@ -1,0 +1,1072 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+	<head>
+		<title>log4javascript</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<script type="text/javascript">
+			//<![CDATA[
+			/* build:js_start */var loggingEnabled = true;
+
+			function toggleLoggingEnabled() {
+				setLoggingEnabled($("enableLogging").checked);
+			}
+
+			function setLoggingEnabled(enable) {
+				loggingEnabled = enable;
+			}
+
+			var newestAtTop = false;
+
+			function setNewestAtTop(isNewestAtTop) {
+				var oldNewestAtTop = newestAtTop;
+				newestAtTop = Boolean(isNewestAtTop);
+				if (oldNewestAtTop != newestAtTop) {
+					// Invert the order of the log entries
+					var lc = getLogContainer();
+					var numberOfEntries = lc.childNodes.length;
+					var node = null;
+
+					// Remove all the log container nodes
+					var logContainerChildNodes = [];
+					while ((node = lc.firstChild)) {
+						lc.removeChild(node);
+						logContainerChildNodes.push(node);
+					}
+
+					// Put them all back in reverse order
+					while ((node = logContainerChildNodes.pop())) {
+						lc.appendChild(node);
+					}
+
+					// Reassemble the matches array
+					if (currentSearch) {
+						var currentMatch = currentSearch.matches[currentMatchIndex];
+						var matchIndex = 0;
+						var matches = [];
+						var actOnLogEntry = function(logEntry) {
+							var logEntryMatches = logEntry.getSearchMatches();
+							for (var i = 0; i < logEntryMatches.length; i++) {
+								matches[matchIndex] = logEntryMatches[i];
+								if (currentMatch && logEntryMatches[i].equals(currentMatch)) {
+									currentMatchIndex = matchIndex;
+								}
+								matchIndex++;
+							}
+						};
+						if (newestAtTop) {
+							for (var i = logEntries.length - 1; i >= 0; i--) {
+								actOnLogEntry(logEntries[i]);
+							}
+						} else {
+							for (var i = 0; i < logEntries.length; i++) {
+								actOnLogEntry(logEntries[i]);
+							}
+						}
+						currentSearch.matches = matches;
+						if (currentMatch) {
+							currentMatch.setCurrent();
+						}
+					} else if (scrollToLatest) {
+						doScrollToLatest();
+					}
+				}
+				$("newestAtTop").checked = isNewestAtTop;
+			}
+
+			function toggleNewestAtTop() {
+				var isNewestAtTop = $("newestAtTop").checked;
+				setNewestAtTop(isNewestAtTop);
+			}
+
+			var scrollToLatest = true;
+
+			function setScrollToLatest(isScrollToLatest) {
+				scrollToLatest = isScrollToLatest;
+				if (scrollToLatest) {
+					doScrollToLatest();
+				}
+				$("scrollToLatest").checked = isScrollToLatest;
+			}
+
+			function toggleScrollToLatest() {
+				var isScrollToLatest = $("scrollToLatest").checked;
+				setScrollToLatest(isScrollToLatest);
+			}
+
+			function doScrollToLatest() {
+				var l = getLogContainer();
+				if (typeof l.scrollTop != "undefined") {
+					if (newestAtTop) {
+						l.scrollTop = 0;
+					} else {
+						var latestLogEntry = l.lastChild;
+						if (latestLogEntry) {
+							l.scrollTop = l.scrollHeight;
+						}
+					}
+				}
+			}
+
+			var maxMessages = null;
+
+			function setMaxMessages(max) {
+				maxMessages = max;
+				pruneLogEntries();
+			}
+
+			var logQueuedEventsTimer = null;
+			var logEntries = [];
+			var isCssWrapSupported;
+			var renderDelay = 100;
+
+			function log(logLevel, formattedMessage) {
+				if (loggingEnabled) {
+					var logEntry = new LogEntry(logLevel, formattedMessage);
+					logEntries.push(logEntry);
+					if (loaded) {
+						if (logQueuedEventsTimer != null) {
+							clearTimeout(logQueuedEventsTimer);
+						}
+						setTimeout(renderQueuedLogEntries, renderDelay);
+					}
+				}
+			}
+
+			function renderQueuedLogEntries() {
+				logQueuedEventsTimer = null;
+				var pruned = pruneLogEntries();
+
+				// Render any unrendered log entries and apply the current search to them
+				var initiallyHasMatches = currentSearch ? currentSearch.hasMatches() : false;
+				for (var i = 0; i < logEntries.length; i++) {
+					if (!logEntries[i].isRendered) {
+						logEntries[i].render();
+						logEntries[i].appendToLog();
+						if (currentSearch) {
+							currentSearch.applyTo(logEntries[i]);
+						}
+					}
+				}
+				if (currentSearch) {
+					if (pruned) {
+						if (currentSearch.hasMatches()) {
+							if (currentMatchIndex === null) {
+								setCurrentMatchIndex(0);
+							}
+							displayMatches();
+						} else {
+							displayNoMatches();
+						}
+					} else if (!initiallyHasMatches && currentSearch.hasMatches()) {
+						setCurrentMatchIndex(0);
+						displayMatches();
+					}
+				}
+				if (scrollToLatest) {
+					doScrollToLatest();
+				}
+			}
+
+			function pruneLogEntries() {
+				if ((maxMessages != null) && (logEntries.length > maxMessages)) {
+					var numberToDelete = logEntries.length - maxMessages;
+					for (var i = 0; i < numberToDelete; i++) {
+						logEntries[i].remove();
+					}
+					logEntries = array_removeFromStart(logEntries, numberToDelete);
+					if (currentSearch) {
+						currentSearch.removePrunedMatches();
+					}
+					return true;
+				}
+				return false;
+			}
+
+			function LogEntry(level, formattedMessage) {
+				this.level = level;
+				this.formattedMessage = formattedMessage;
+				this.isRendered = false;
+			}
+
+			LogEntry.prototype.render = function() {
+				this.mainDiv = document.createElement("div");
+				this.mainDiv.className = "logentry " + this.level.name;
+
+				// Support for the CSS attribute white-space in IE for Windows is
+				// non-existent pre version 6 and slightly odd in 6, so instead
+				// use two different HTML elements
+				if (isCssWrapSupported) {
+					this.mainDiv.appendChild(document.createTextNode(this.formattedMessage));
+				} else {
+					this.formattedMessage = this.formattedMessage.replace(/\r\n/g, "\r"); // Workaround for IE's treatment of white space
+					this.unwrappedPre = this.mainDiv.appendChild(document.createElement("pre"));
+					this.unwrappedPre.appendChild(document.createTextNode(this.formattedMessage));
+					this.unwrappedPre.className = "unwrapped";
+					this.wrappedSpan = this.mainDiv.appendChild(document.createElement("span"));
+					this.wrappedSpan.appendChild(document.createTextNode(this.formattedMessage));
+					this.wrappedSpan.className = "wrapped";
+				}
+				this.content = this.formattedMessage;
+				this.isRendered = true;
+			};
+
+			LogEntry.prototype.appendToLog = function() {
+				var lc = getLogContainer();
+				if (newestAtTop && lc.hasChildNodes()) {
+					lc.insertBefore(this.mainDiv, lc.firstChild);
+				} else {
+					getLogContainer().appendChild(this.mainDiv);
+				}
+			};
+
+			LogEntry.prototype.setContent = function(content) {
+				if (content != this.content) {
+					if (getLogContainer().currentStyle) {
+						if (content === this.formattedMessage) {
+							this.unwrappedPre.innerHTML = "";
+							this.unwrappedPre.appendChild(document.createTextNode(this.formattedMessage));
+							this.wrappedSpan.innerHTML = "";
+							this.wrappedSpan.appendChild(document.createTextNode(this.formattedMessage));
+						} else {
+							content = content.replace(/\r\n/g, "\r"); // Workaround for IE's treatment of white space
+							this.unwrappedPre.innerHTML = content;
+							this.wrappedSpan.innerHTML = content;
+						}
+					} else {
+						if (content === this.formattedMessage) {
+							this.mainDiv.innerHTML = "";
+							this.mainDiv.appendChild(document.createTextNode(this.formattedMessage));
+						} else {
+							this.mainDiv.innerHTML = content;
+						}
+					}
+					this.content = content;
+				}
+			};
+
+			LogEntry.prototype.getSearchMatches = function() {
+				var matches = [];
+				if (isCssWrapSupported) {
+					var els = getElementsByClass(this.mainDiv, "searchterm", "span");
+					for (var i = 0; i < els.length; i++) {
+						matches[i] = new Match(els[i]);
+					}
+				} else {
+					var unwrappedEls = getElementsByClass(this.unwrappedPre, "searchterm", "span");
+					var wrappedEls = getElementsByClass(this.wrappedSpan, "searchterm", "span");
+					for (i = 0; i < unwrappedEls.length; i++) {
+						matches[i] = new Match(null, unwrappedEls[i], wrappedEls[i]);
+					}
+				}
+				return matches;
+			};
+
+			LogEntry.prototype.remove = function() {
+				if (this.isRendered) {
+					this.mainDiv.parentNode.removeChild(this.mainDiv);
+					this.mainDiv = null;
+				}
+			};
+
+			function mainPageReloaded() {
+				var separator = document.createElement("div");
+				separator.className = "separator";
+				separator.innerHTML = "&nbsp;";
+				getLogContainer().appendChild(separator);
+			}
+
+			window.onload = function() {
+				isCssWrapSupported = (typeof getLogContainer().currentStyle == "undefined");
+				setLogContainerHeight();
+				toggleLoggingEnabled();
+				toggleSearchEnabled();
+				toggleSearchFilter();
+				toggleSearchHighlight();
+				applyFilters();
+				toggleWrap();
+				toggleNewestAtTop();
+				toggleScrollToLatest();
+				//doSearch();
+				renderQueuedLogEntries();
+				loaded = true;
+				// Workaround to make sure log div starts at the correct size
+				setTimeout(setLogContainerHeight, 20);
+
+				// Remove "Close" button if not in pop-up mode
+				if (window != top) {
+					$("closeButton").style.display = "none";
+				}
+			};
+
+			var loaded = false;
+
+			var logLevels = ["TRACE", "DEBUG", "INFO", "WARN", "ERROR", "FATAL"];
+
+			function getCheckBox(logLevel) {
+				return $("switch_" + logLevel);
+			}
+
+			function getLogContainer() {
+				return $("log");
+			}
+
+			function applyFilters() {
+				for (var i = 0; i < logLevels.length; i++) {
+					if (getCheckBox(logLevels[i]).checked) {
+						addClass(getLogContainer(), logLevels[i]);
+					} else {
+						removeClass(getLogContainer(), logLevels[i]);
+					}
+				}
+			}
+
+			function toggleAllLevels() {
+				var turnOn = $("switch_ALL").checked;
+				for (var i = 0; i < logLevels.length; i++) {
+					getCheckBox(logLevels[i]).checked = turnOn;
+					if (turnOn) {
+						addClass(getLogContainer(), logLevels[i]);
+					} else {
+						removeClass(getLogContainer(), logLevels[i]);
+					}
+				}
+			}
+
+			function checkAllLevels() {
+				for (var i = 0; i < logLevels.length; i++) {
+					if (!getCheckBox(logLevels[i]).checked) {
+						getCheckBox("ALL").checked = false;
+						return;
+					}
+				}
+				getCheckBox("ALL").checked = true;
+			}
+
+			function clearLog() {
+				getLogContainer().innerHTML = "";
+				logEntries = [];
+				doSearch();
+			}
+
+			function toggleWrap() {
+				var enable = $("wrap").checked;
+				if (enable) {
+					addClass(getLogContainer(), "wrap");
+				} else {
+					removeClass(getLogContainer(), "wrap");
+				}
+				refreshCurrentMatch();
+			}
+
+			/* ------------------------------------------------------------------- */
+
+			// Search
+
+			var searchTimer = null;
+
+			function scheduleSearch() {
+				try {
+					clearTimeout(searchTimer);
+				} catch (ex) {
+					// Do nothing
+				}
+				searchTimer = setTimeout(doSearch, 500);
+			}
+
+			function Search(searchTerm, isRegex, searchRegex, isCaseSensitive) {
+				this.searchTerm = searchTerm;
+				this.isRegex = isRegex;
+				this.searchRegex = searchRegex;
+				this.isCaseSensitive = isCaseSensitive;
+				this.matches = [];
+			}
+
+			Search.prototype.hasMatches = function() {
+				return this.matches.length > 0;
+			};
+
+			Search.prototype.match = function(logEntry) {
+				var entryText = logEntry.formattedMessage;
+				var matchesSearch = false;
+				if (this.isRegex) {
+					matchesSearch = this.searchRegex.test(entryText);
+				} else if (this.isCaseSensitive) {
+					matchesSearch = (entryText.indexOf(this.searchTerm) > -1);
+				} else {
+					matchesSearch = (entryText.toLowerCase().indexOf(this.searchTerm.toLowerCase()) > -1);
+				}
+				return matchesSearch;
+			};
+
+			Search.prototype.applyTo = function(logEntry) {
+				var doesMatch = this.match(logEntry);
+				if (doesMatch) {
+					replaceClass(logEntry.mainDiv, "searchmatch", "searchnonmatch");
+					var logEntryContent;
+					if (this.isRegex) {
+						var flags = this.isCaseSensitive ? "g" : "gi";
+						var capturingRegex = new RegExp("(" + this.searchRegex.source + ")", flags);
+						logEntryContent = logEntry.formattedMessage.replace(capturingRegex, "<span class=\"searchterm\">$1</span>");
+					} else {
+						logEntryContent = "";
+						var searchTermReplacementStartTag = "<span class=\"searchterm\">";
+						var searchTermReplacementEndTag = "</span>";
+						var searchTermReplacementLength = searchTermReplacementStartTag.length + this.searchTerm.length + searchTermReplacementEndTag.length;
+						var searchTermLength = this.searchTerm.length;
+						var startIndex = 0;
+						var searchIndex;
+						var searchTermLowerCase = this.searchTerm.toLowerCase();
+						var logTextLowerCase = logEntry.formattedMessage.toLowerCase();
+						while ((searchIndex = logTextLowerCase.indexOf(searchTermLowerCase, startIndex)) > -1) {
+							var searchTermReplacement = searchTermReplacementStartTag + logEntry.formattedMessage.substr(searchIndex, this.searchTerm.length) + searchTermReplacementEndTag;
+							logEntryContent += logEntry.formattedMessage.substring(startIndex, searchIndex) + searchTermReplacement;
+							startIndex = searchIndex + searchTermLength;
+						}
+						logEntryContent += logEntry.formattedMessage.substr(startIndex);
+					}
+					logEntry.setContent(logEntryContent);
+					var logEntryMatches = logEntry.getSearchMatches();
+					this.matches = this.matches.concat(logEntryMatches);
+				} else {
+					replaceClass(logEntry.mainDiv, "searchnonmatch", "searchmatch");
+					logEntry.setContent(logEntry.formattedMessage);
+				}
+				return doesMatch;
+			};
+
+			Search.prototype.removePrunedMatches = function() {
+				var matchesToRemoveCount = 0;
+				var currentMatchRemoved = false;
+				for (var i = 0; i < this.matches.length; i++) {
+					if (this.matches[i].isOrphan()) {
+						this.matches[i].remove();
+						if (i === currentMatchIndex) {
+							currentMatchRemoved = true;
+						}
+						matchesToRemoveCount++;
+					}
+				}
+				if (matchesToRemoveCount > 0) {
+					array_removeFromStart(this.matches, matchesToRemoveCount);
+					var newMatchIndex = currentMatchRemoved ? 0 :
+						currentMatchIndex - matchesToRemoveCount;
+					if (this.hasMatches()) {
+						setCurrentMatchIndex(newMatchIndex);
+					} else {
+						currentMatchIndex = null;
+					}
+				}
+			};
+
+			function getPageOffsetTop(el) {
+				var currentEl = el;
+				var y = 0;
+				while (currentEl) {
+					y += currentEl.offsetTop;
+					currentEl = currentEl.offsetParent;
+				}
+				return y;
+			}
+
+			function scrollIntoView(el) {
+				getLogContainer().scrollLeft = el.offsetLeft;
+				getLogContainer().scrollTop = getPageOffsetTop(el) - getToolBarsHeight();
+			}
+
+			function Match(spanInMainDiv, spanInUnwrappedPre, spanInWrappedSpan) {
+				this.spanInMainDiv = spanInMainDiv;
+				if (!isCssWrapSupported) {
+					this.spanInUnwrappedPre = spanInUnwrappedPre;
+					this.spanInWrappedSpan = spanInWrappedSpan;
+				}
+				this.mainSpan = isCssWrapSupported ? spanInMainDiv : spanInUnwrappedPre;
+			}
+
+			Match.prototype.equals = function(match) {
+				return this.mainSpan === match.mainSpan;
+			};
+
+			Match.prototype.setCurrent = function() {
+				if (isCssWrapSupported) {
+					addClass(this.spanInMainDiv, "currentmatch");
+					scrollIntoView(this.spanInMainDiv);
+				} else {
+					addClass(this.spanInUnwrappedPre, "currentmatch");
+					addClass(this.spanInWrappedSpan, "currentmatch");
+					// Scroll the visible one into view
+					var elementToScroll = $("wrap").checked ? this.spanInWrappedSpan : this.spanInUnwrappedPre;
+					scrollIntoView(elementToScroll);
+				}
+			};
+
+			Match.prototype.setNotCurrent = function() {
+				if (isCssWrapSupported) {
+					removeClass(this.spanInMainDiv, "currentmatch");
+				} else {
+					removeClass(this.spanInUnwrappedPre, "currentmatch");
+					removeClass(this.spanInWrappedSpan, "currentmatch");
+				}
+			};
+
+			Match.prototype.isOrphan = function() {
+				return isOrphan(this.mainSpan);
+			};
+
+			Match.prototype.remove = function() {
+				if (isCssWrapSupported) {
+					this.spanInMainDiv = null;
+				} else {
+					this.spanInUnwrappedPre = null;
+					this.spanInWrappedSpan = null;
+				}
+			};
+
+			var currentSearch = null;
+			var currentMatchIndex = null;
+
+			function doSearch() {
+				var searchBox = $("searchBox");
+				var searchTerm = searchBox.value;
+				var isRegex = $("searchRegex").checked;
+				var isCaseSensitive = $("searchCaseSensitive").checked;
+
+				if (searchTerm === "") {
+					$("searchReset").disabled = true;
+					$("searchNav").style.display = "none";
+					removeClass(document.body, "searching");
+					removeClass(searchBox, "hasmatches");
+					removeClass(searchBox, "nomatches");
+					for (var i = 0; i < logEntries.length; i++) {
+						removeClass(logEntries[i].mainDiv, "searchmatch");
+						removeClass(logEntries[i].mainDiv, "searchnonmatch");
+						logEntries[i].setContent(logEntries[i].formattedMessage);
+					}
+					currentSearch = null;
+					setLogContainerHeight();
+				} else {
+					$("searchReset").disabled = false;
+					$("searchNav").style.display = "block";
+					var searchRegex;
+					var regexValid;
+					if (isRegex) {
+						try {
+							searchRegex = isCaseSensitive ? new RegExp(searchTerm, "g") : new RegExp(searchTerm, "gi");
+							regexValid = true;
+							replaceClass(searchBox, "validregex", "invalidregex");
+							searchBox.title = "Valid regex";
+						} catch (ex) {
+							regexValid = false;
+							replaceClass(searchBox, "invalidregex", "validregex");
+							searchBox.title = "Invalid regex: " + (ex.message ? ex.message : (ex.description ? ex.description : "unknown error"));
+							return;
+						}
+					} else {
+						searchBox.title = "";
+						removeClass(searchBox, "validregex");
+						removeClass(searchBox, "invalidregex");
+					}
+					addClass(document.body, "searching");
+					currentSearch = new Search(searchTerm, isRegex, searchRegex, isCaseSensitive);
+					for (var i = 0; i < logEntries.length; i++) {
+						currentSearch.applyTo(logEntries[i]);
+					}
+					setLogContainerHeight();
+
+					// Highlight the first search match
+					if (currentSearch.hasMatches()) {
+						setCurrentMatchIndex(0);
+						displayMatches();
+					} else {
+						displayNoMatches();
+					}
+				}
+			}
+
+			function refreshCurrentMatch() {
+				if (currentSearch && currentSearch.hasMatches()) {
+					setCurrentMatchIndex(currentMatchIndex);
+				}
+			}
+
+			function displayMatches() {
+				replaceClass($("searchBox"), "hasmatches", "nomatches");
+				$("searchBox").title = "" + currentSearch.matches.length + " matches found";
+			}
+
+			function displayNoMatches() {
+				replaceClass($("searchBox"), "nomatches", "hasmatches");
+				$("searchBox").title = "No matches found";
+			}
+
+			function toggleSearchEnabled(enable) {
+				enable = (typeof enable == "undefined") ? !$("searchDisable").checked : enable;
+				$("searchBox").disabled = !enable;
+				$("searchReset").disabled = !enable;
+				$("searchRegex").disabled = !enable;
+				$("searchNext").disabled = !enable;
+				$("searchPrevious").disabled = !enable;
+				$("searchCaseSensitive").disabled = !enable;
+				$("searchNav").style.display = (enable && ($("searchBox").value !== "")) ?
+					"block" : "none";
+				if (enable) {
+					removeClass($("search"), "greyedout");
+					addClass(document.body, "searching");
+					if ($("searchHighlight").checked) {
+						addClass(getLogContainer(), "searchhighlight");
+					} else {
+						removeClass(getLogContainer(), "searchhighlight");
+					}
+					if ($("searchFilter").checked) {
+						addClass(getLogContainer(), "searchfilter");
+					} else {
+						removeClass(getLogContainer(), "searchfilter");
+					}
+					$("searchDisable").checked = !enable;
+				} else {
+					addClass($("search"), "greyedout");
+					removeClass(document.body, "searching");
+					removeClass(getLogContainer(), "searchhighlight");
+					removeClass(getLogContainer(), "searchfilter");
+				}
+				setLogContainerHeight();
+			}
+
+			function toggleSearchFilter() {
+				var enable = $("searchFilter").checked;
+				if (enable) {
+					addClass(getLogContainer(), "searchfilter");
+				} else {
+					removeClass(getLogContainer(), "searchfilter");
+				}
+				refreshCurrentMatch();
+			}
+
+			function toggleSearchHighlight() {
+				var enable = $("searchHighlight").checked;
+				if (enable) {
+					addClass(getLogContainer(), "searchhighlight");
+				} else {
+					removeClass(getLogContainer(), "searchhighlight");
+				}
+			}
+
+			function clearSearch() {
+				$("searchBox").value = "";
+				doSearch();
+			}
+
+			function searchNext() {
+				if (currentSearch !== null && currentMatchIndex !== null) {
+					currentSearch.matches[currentMatchIndex].setNotCurrent();
+					if (currentMatchIndex == currentSearch.matches.length - 1) {
+						if (confirm("Reached the end of the page. Start from the top?")) {
+							setCurrentMatchIndex(0, true);
+						}
+					} else {
+						setCurrentMatchIndex(currentMatchIndex + 1, true);
+					}
+				}
+			}
+
+			function searchPrevious() {
+				if (currentSearch !== null && currentMatchIndex !== null) {
+					currentSearch.matches[currentMatchIndex].setNotCurrent();
+					if (currentMatchIndex === 0) {
+						if (confirm("Reached the start of the page. Continue from the bottom?")) {
+							setCurrentMatchIndex(currentSearch.matches.length - 1, false);
+						}
+					} else {
+						setCurrentMatchIndex(currentMatchIndex - 1, false);
+					}
+				}
+			}
+
+			function setCurrentMatchIndex(index) {
+				currentMatchIndex = index;
+				currentSearch.matches[currentMatchIndex].setCurrent();
+			}
+
+			/* ------------------------------------------------------------------------- */
+
+			// CSS Utilities
+
+			function addClass(el, cssClass) {
+				if (!hasClass(el, cssClass)) {
+					if (el.className) {
+						el.className += " " + cssClass;
+					} else {
+						el.className = cssClass;
+					}
+				}
+			}
+
+			function hasClass(el, cssClass) {
+				if (el.className) {
+					var classNames = el.className.split(" ");
+					return array_contains(classNames, cssClass);
+				}
+				return false;
+			}
+
+			function removeClass(el, cssClass) {
+				if (hasClass(el, cssClass)) {
+					// Rebuild the className property
+					var existingClasses = el.className.split(" ");
+					var newClasses = [];
+					for (var i = 0; i < existingClasses.length; i++) {
+						if (existingClasses[i] != cssClass) {
+							newClasses[newClasses.length] = existingClasses[i];
+						}
+					}
+					el.className = newClasses.join(" ");
+				}
+			}
+
+			function replaceClass(el, newCssClass, oldCssClass) {
+				removeClass(el, oldCssClass);
+				addClass(el, newCssClass);
+			}
+
+			/* ------------------------------------------------------------------------- */
+
+			// Other utility functions
+
+			function getElementsByClass(el, cssClass, tagName) {
+				var elements = el.getElementsByTagName(tagName);
+				var matches = [];
+				for (var i = 0; i < elements.length; i++) {
+					if (hasClass(elements[i], cssClass)) {
+						matches.push(elements[i]);
+					}
+				}
+				return matches;
+			}
+
+			// Syntax borrowed from Prototype library
+			function $(id) {
+				return document.getElementById(id);
+			}
+
+			function isOrphan(node) {
+				var currentNode = node;
+				while (currentNode) {
+					if (currentNode == document.body) {
+						return false;
+					}
+					currentNode = currentNode.parentNode;
+				}
+				return true;
+			}
+
+			function getWindowWidth() {
+				if (window.innerWidth) {
+					return window.innerWidth;
+				} else if (document.documentElement && document.documentElement.clientWidth) {
+					return document.documentElement.clientWidth;
+				} else if (document.body) {
+					return document.body.clientWidth;
+				}
+				return 0;
+			}
+
+			function getWindowHeight() {
+				if (window.innerHeight) {
+					return window.innerHeight;
+				} else if (document.documentElement && document.documentElement.clientHeight) {
+					return document.documentElement.clientHeight;
+				} else if (document.body) {
+					return document.body.clientHeight;
+				}
+				return 0;
+			}
+
+			function getToolBarsHeight() {
+				return $("switches").offsetHeight;
+			}
+
+			function setLogContainerHeight() {
+				var windowHeight = getWindowHeight();
+				$("body").style.height = getWindowHeight() + "px";
+				getLogContainer().style.height = "" +
+					(windowHeight - getToolBarsHeight()) + "px";
+			}
+			window.onresize = setLogContainerHeight;
+
+			if (!Array.prototype.push) {
+				Array.prototype.push = function() {
+			        for (var i = 0; i < arguments.length; i++){
+			            this[this.length] = arguments[i];
+			        }
+			        return this.length;
+				};
+			}
+
+			if (!Array.prototype.pop) {
+				Array.prototype.pop = function() {
+					if (this.length > 0) {
+						var val = this[this.length - 1];
+						this.length = this.length - 1;
+						return val;
+					}
+				};
+			}
+
+			if (!Array.prototype.shift) {
+				Array.prototype.shift = function() {
+					if (this.length > 0) {
+						var firstItem = this[0];
+						for (var i = 0; i < this.length - 1; i++) {
+							this[i] = this[i + 1];
+						}
+						this.length = this.length - 1;
+						return firstItem;
+					}
+				};
+			}
+
+			function array_removeFromStart(array, numberToRemove) {
+				if (Array.prototype.splice) {
+					array.splice(0, numberToRemove);
+				} else {
+					for (var i = numberToRemove; i < array.length; i++) {
+						array[i - numberToRemove] = array[i];
+					}
+					array.length = array.length - numberToRemove;
+				}
+				return array;
+			}
+
+			function array_contains(arr, val) {
+				for (var i = 0; i < arr.length; i++) {
+					if (arr[i] == val) {
+						return true;
+					}
+				}
+				return false;
+			}/* build:js_end */
+			//]]>
+		</script>
+		<!--build:remove_start--><script type="text/javascript" src="log4javascript.js"></script>
+		<script type="text/javascript" src="console.js"></script>
+		<!--build:remove_end--><style type="text/css">
+			/* build:css_start */body {
+				background-color: white;
+				color: black;
+				padding: 0px;
+				margin: 0px;
+				font-family: tahoma, verdana, arial, helvetica, sans-serif;
+				overflow: hidden;
+			}
+
+			div#switchesContainer input {
+				margin-bottom: 0px;
+			}
+
+			div#switches div.toolbar {
+				border-top: solid #ffffff 1px;
+				border-bottom: solid #aca899 1px;
+				background-color: #f1efe7;
+				padding: 3px 5px;
+				font-size: 68.75%;
+			}
+
+			div#switches div.toolbar, div#search input {
+				font-family: tahoma, verdana, arial, helvetica, sans-serif;
+			}
+
+			div#switches input.button {
+				padding: 0px 5px;
+				font-size: 100%;
+			}
+
+			div#switches input#clearButton {
+				margin-left: 20px;
+			}
+
+			div#levels label {
+				font-weight: bold;
+			}
+
+			div#levels label, div#options label {
+				margin-right: 5px;
+			}
+
+			div#levels label#wrapLabel {
+				font-weight: normal;
+			}
+
+			div#search {
+				padding: 5px 0px;
+			}
+
+			div#search label {
+				margin-right: 10px;
+			}
+
+			div#search label.searchboxlabel {
+				margin-right: 0px;
+			}
+
+			div#search input {
+				font-size: 100%;
+			}
+
+			div#search input.validregex {
+				color: green;
+			}
+
+			div#search input.invalidregex {
+				color: red;
+			}
+
+			div#search input.nomatches {
+				color: white;
+				background-color: #ff6666;
+			}
+
+			div#search input.nomatches {
+				color: white;
+				background-color: #ff6666;
+			}
+
+			*.greyedout {
+				color: gray;
+			}
+
+			*.greyedout *.alwaysenabled {
+				color: black;
+			}
+
+			div#log {
+				font-family: Courier New, Courier;
+				font-size: 75%;
+				width: 100%;
+				overflow: auto;
+			}
+
+			*.logentry {
+				overflow: visible;
+				display: none;
+				white-space: pre;
+			}
+
+			*.logentry pre.unwrapped {
+				display: inline;
+			}
+
+			*.logentry span.wrapped {
+				display: none;
+			}
+
+			body.searching *.logentry span.currentmatch {
+				color: white !important;
+				background-color: green !important;
+			}
+
+			body.searching div.searchhighlight *.logentry span.searchterm {
+				/*font-weight: bold;*/
+				color: black;
+				background-color: yellow;
+			}
+
+			div.wrap *.logentry {
+				white-space: normal !important;
+				border-width: 0px 0px 1px 0px;
+				border-color: #dddddd;
+				border-style: dotted;
+			}
+
+			div.wrap *.logentry pre.unwrapped {
+				display: none;
+			}
+
+			div.wrap *.logentry span.wrapped {
+				display: inline;
+			}
+
+			div.searchfilter *.searchnonmatch {
+				display: none !important;
+			}
+
+			div#log *.TRACE, label#label_TRACE {
+				color: #666666;
+			}
+
+			div#log *.DEBUG, label#label_DEBUG {
+				color: green;
+			}
+
+			div#log *.INFO, label#label_INFO {
+				color: #000099;
+			}
+
+			div#log *.WARN, label#label_WARN {
+				color: #999900;
+			}
+
+			div#log *.ERROR, label#label_ERROR {
+				color: red;
+			}
+
+			div#log *.FATAL, label#label_FATAL {
+				color: #660066;
+			}
+
+			div.TRACE#log *.TRACE,
+			div.DEBUG#log *.DEBUG,
+			div.INFO#log *.INFO,
+			div.WARN#log *.WARN,
+			div.ERROR#log *.ERROR,
+			div.FATAL#log *.FATAL {
+				display: block;
+			}
+
+			div#log div.separator {
+				background-color: #cccccc;
+				margin: 5px 0px;
+				line-height: 1px;
+			}/* build:css_end */
+		</style>
+	</head>
+
+	<body id="body">
+		<div id="switchesContainer">
+			<div id="switches">
+				<div id="levels" class="toolbar">
+					Filters:
+					<input type="checkbox" id="switch_TRACE" onclick="applyFilters(); checkAllLevels()" checked="checked" title="Show/hide trace messages" /><label for="switch_TRACE" id="label_TRACE">trace</label>
+					<input type="checkbox" id="switch_DEBUG" onclick="applyFilters(); checkAllLevels()" checked="checked" title="Show/hide debug messages" /><label for="switch_DEBUG" id="label_DEBUG">debug</label>
+					<input type="checkbox" id="switch_INFO" onclick="applyFilters(); checkAllLevels()" checked="checked" title="Show/hide info messages" /><label for="switch_INFO" id="label_INFO">info</label>
+					<input type="checkbox" id="switch_WARN" onclick="applyFilters(); checkAllLevels()" checked="checked" title="Show/hide warn messages" /><label for="switch_WARN" id="label_WARN">warn</label>
+					<input type="checkbox" id="switch_ERROR" onclick="applyFilters(); checkAllLevels()" checked="checked" title="Show/hide error messages" /><label for="switch_ERROR" id="label_ERROR">error</label>
+					<input type="checkbox" id="switch_FATAL" onclick="applyFilters(); checkAllLevels()" checked="checked" title="Show/hide fatal messages" /><label for="switch_FATAL" id="label_FATAL">fatal</label>
+					<input type="checkbox" id="switch_ALL" onclick="toggleAllLevels(); applyFilters()" checked="checked" title="Show/hide all messages" /><label for="switch_ALL" id="label_ALL">all</label>
+				</div>
+				<div id="search" class="toolbar">
+					<label for="searchBox" class="searchboxlabel">Search:</label> <input type="text" id="searchBox" onclick="toggleSearchEnabled(true)" onkeyup="scheduleSearch()" size="20" />
+					<input type="button" id="searchReset" disabled="disabled" value="Reset" onclick="clearSearch()" class="button" title="Reset the search" />
+					<input type="checkbox" id="searchRegex" onclick="doSearch()" title="If checked, search is treated as a regular expression" /><label for="searchRegex">Regex</label>
+					<input type="checkbox" id="searchCaseSensitive" onclick="doSearch()" title="If checked, search is case sensitive" /><label for="searchCaseSensitive">Match case</label>
+					<input type="checkbox" id="searchDisable" onclick="toggleSearchEnabled()" title="Enable/disable search" /><label for="searchDisable" class="alwaysenabled">Disable</label>
+					<div id="searchNav">
+						<input type="button" id="searchNext" disabled="disabled" value="Next" onclick="searchNext()" class="button" title="Go to the next matching log entry" />
+						<input type="button" id="searchPrevious" disabled="disabled" value="Previous" onclick="searchPrevious()" class="button" title="Go to the previous matching log entry" />
+						<input type="checkbox" id="searchFilter" onclick="toggleSearchFilter()" title="If checked, non-matching log entries are filtered out" /><label for="searchFilter">Filter</label>
+						<input type="checkbox" id="searchHighlight" onclick="toggleSearchHighlight()" title="Highlight matched search terms" /><label for="searchHighlight" class="alwaysenabled">Highlight all</label>
+					</div>
+				</div>
+				<div id="options" class="toolbar">
+					Options:
+					<input type="checkbox" id="enableLogging" onclick="toggleLoggingEnabled()" checked="checked" title="Enable/disable logging" /><label for="enableLogging" id="wrapLabel">Log</label>
+					<input type="checkbox" id="wrap" onclick="toggleWrap()" title="Enable / disable word wrap" /><label for="wrap" id="wrapLabel">Wrap</label>
+					<input type="checkbox" id="newestAtTop" onclick="toggleNewestAtTop()" title="If checked, causes newest messages to appear at the top" /><label for="newestAtTop" id="newestAtTopLabel">Newest at the top</label>
+					<input type="checkbox" id="scrollToLatest" onclick="toggleScrollToLatest()" checked="checked" title="If checked, window automatically scrolls to a new message when it is added" /><label for="scrollToLatest" id="scrollToLatestLabel">Scroll to latest</label>
+					<input type="button" id="clearButton" value="Clear" onclick="clearLog()" class="button" title="Clear all log messages"  />
+					<input type="button" id="closeButton" value="Close" onclick="window.close()" class="button" title="Close the window" />
+				</div>
+			</div>
+
+		</div>
+		<div id="log" class="TRACE DEBUG INFO WARN ERROR FATAL"></div>
+	</body>
+</html>

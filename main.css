@@ -91,6 +91,11 @@ div#content h4 {
 	border-top: solid #eeeeee 1px;
 }
 
+div#content h5 {
+	padding: 0px;
+	margin: 3px 0px;
+}
+
 div#footer {
 	margin-top: 20px;
 	padding: 2px;
@@ -135,9 +140,27 @@ pre.code {
 	padding: 3px;
 }
 
-div.example {
+div.example, div.panel {
 	border: solid 1px #cccccc;
+	background-color: #f5f5f5;
 	padding: 3px;
+}
+
+div.panel h2 {
+	margin: 5px 0px;
+}
+
+div.padded {
+	padding: 10px;
+}
+
+div.hidden {
+	display: none;
+}
+
+div.active {
+	background-color: #fcfffc;
+	border-color: green;
 }
 
 label.rightofinput, input.rightoflabel {
@@ -180,4 +203,19 @@ ul.propertieslist li.method *.params li.param {
 
 ul.propertieslist li.method *.params li.param *.paramname {
 	font-style: italic;
+}
+
+div.serverlog {
+	height: 200px;
+	/*border: solid 1px #cccccc;*/
+}
+
+div#inPageConsole {
+	margin-top: 10px;
+}
+
+div.iframecontainer {
+	background-color: white;
+	border: solid #cccccc 1px;
+	width: 100%;
 }

@@ -19,12 +19,14 @@
 					<a class="navitem" href="index.html">docs</a>
 					| <a class="navitem" href="quickstart.html">quick start</a>
 					| <span class="navitem">manual</span>
-					| <a class="navitem" href="../examples/demo.html">demo</a>
+					| <a class="navitem" href="../demos/basic.html">basic demo</a>
+					| <a class="navitem" href="../demos/full.html">full demo</a>
 					| <a class="navitem" href="http://www.timdown.co.uk/log4javascript" target="_blank">website</a>
 				</div>
-				<h1>log4javascript manual</h1>
+				<h1>log4javascript 1.3 manual</h1>
 				<h2>Contents</h2>
 				<ul>
+					<li><a href="#distribution">Note about the distribution</a></li>
 					<li><a href="#intro">Introduction</a></li>
 					<li><a href="#noteaboutlog4javascript">Note about the log4javascript object</a></li>
 					<li>
@@ -44,7 +46,7 @@
 							<li><a href="#alertappender">AlertAppender</a></li>
 							<li><a href="#ajaxappender">AjaxAppender</a></li>
 							<li><a href="#popupappender">PopUpAppender</a></li>
-							<li><a href="#inlineappender">InlineAppender</a></li>
+							<li><a href="#inpageappender">InPageAppender</a></li>
 							<li><a href="#browserconsoleappender">BrowserConsoleAppender</a></li>
 						</ul>
 					</li>
@@ -52,6 +54,7 @@
 						<a href="#layouts">Layouts</a>
 						<ul>
 							<li><a href="#layout">Layout</a></li>
+							<li><a href="#nulllayout">NullLayout</a></li>
 							<li><a href="#simplelayout">SimpleLayout</a></li>
 							<li><a href="#patternlayout">PatternLayout</a></li>
 							<li><a href="#xmllayout">XmlLayout</a></li>
@@ -68,6 +71,49 @@
 					</li>
 					<li><a href="#differences">Differences between log4javascript and log4j</a></li>
 				</ul>
+				<div id="distribution">
+					<h2>A note about the distribution</h2>
+					<p>
+						As from 1.3, the log4javascript distribution includes four main JavaScript
+						files:
+					</p>
+					<ul>
+						<li>
+							<code>log4javascript.js</code>
+							<p>
+								This is the main file for general use. Unlike in previous versions, this
+								file is compressed (i.e. whitespace and comments have been removed) but
+								is functionally identical to the uncompressed version.
+							</p>
+						</li>
+						<li>
+							<code>log4javascript_uncompressed.js</code>
+							<p>
+								The uncompressed version of the main file with all comments and indentation
+								included.
+							</p>
+						</li>
+						<li>
+							<code>log4javascript_stub.js</code>
+							<p>
+								Contains stub implementations of all log4javacript objects and methods in
+								the public API, making it ideal for production environments where logging
+								is not required. Replacing the <code>log4javascript.js</code> file with this file means
+								that log calls may be left in production code.
+							</p>
+						</li>
+						<li>
+							<code>log4javascript_stub_uncompressed.js</code>
+							<p>
+								An uncompressed version of <code>log4javascript_stub.js</code> file, functionally
+								identical to the compressed version.
+							</p>
+						</li>
+					</ul>
+					<p class="linktotop">
+						<a href="#container">Top</a>
+					</p>
+				</div>
 				<div id="intro">
 					<h2>Introduction</h2>
 					<p>
@@ -127,8 +173,8 @@
 					<h2>Loggers, Appenders, Layouts and Levels</h2>
 					<p>
 						A <em>logger</em> in log4javascript is the object on which log calls are
-						made. A logger may be assigned zero or more appenders.
-						An <em>appender</em> is an object that actually does the logging: for example,
+						made. A logger may be assigned zero or more <em>appenders</em>.
+						An appender is an object that actually does the logging: for example,
 						a <code><a href="#popupappender">PopUpAppender</a></code> logs messages to
 						a pop-up console window while an <code><a href="#ajaxappender">AjaxAppender</a></code>
 						uses HTTP to send log messages back to the server. Each appender is assigned
@@ -173,7 +219,10 @@
 									<strong>Constructor parameters</strong>
 								</p>
 								<p>
-									For example: <code>var p = new log4javascript.PopUpAppender(null, true, true, true, true, false, 600, 400);</code>
+									For example: 
+								</p>
+								<p>
+									<code>var p = new log4javascript.PopUpAppender(null, true, true, true, true, false, true, false, 600, 400);</code>
 								</p>
 								<p>
 									This has the advantage of being fairly concise and gets all the configuration out of the
@@ -190,7 +239,10 @@
 									<strong>Setters</strong>
 								</p>
 								<p>
-									For example: <code>var p = new log4javascript.PopUpAppender(); p.setFocusPopUp(true);</code>
+									For example:
+								</p>
+								<p>
+									<code>var p = new log4javascript.PopUpAppender(); p.setFocusPopUp(true);</code>
 								</p>
 								<p>
 									This is much more readable and reduces the need to refer to documentation, but has the
@@ -219,6 +271,7 @@
 						<pre class="code">
 &lt;script type="text/javascript" src="log4javascript.js"&gt;&lt;/script&gt;
 &lt;script type="text/javascript"&gt;
+	//&lt;![CDATA[
 	var log = log4javascript.getLogger("main");
 </pre>
 						<p>
@@ -229,7 +282,7 @@
 							same as that of the window, a <code><a href="#patternlayout">PatternLayout</a></code>
 							is used that displays the time of the message and not the date (note that this is
 							also true of PopUpAppender's default layout). The format of the string passed into
-							PatternLayout is explained <code><a href="#patternlayout">below</a></code>.
+							PatternLayout is explained <a href="#patternlayout">below</a>.
 						</p>
 						<pre class="code">
 	var popUpAppender = new log4javascript.PopUpAppender();
@@ -258,6 +311,7 @@
 						<pre class="code">
 	log.debug("Debugging message (appears in pop-up)");
 	log.error("Error message (appears in pop-up and in server log)");
+	//]]&gt;
 &lt;/script&gt;
 </pre>
 						<p>
@@ -266,8 +320,10 @@
 						<pre class="code">
 &lt;script type="text/javascript" src="log4javascript.js"&gt;&lt;/script&gt;
 &lt;script type="text/javascript"&gt;
+	//&lt;![CDATA[
 	var log = log4javascript.getLogger("main");
 	var popUpAppender = new log4javascript.PopUpAppender();
+	var popUpLayout = new log4javascript.PatternLayout("%d{HH:mm:ss} %-5p - %m%n");
 	popUpAppender.setLayout(popUpLayout);
 	log.addAppender(popUpAppender);
 	var ajaxAppender = new log4javascript.AjaxAppender("myloggingservlet.do");
@@ -275,8 +331,13 @@
 	log.addAppender(ajaxAppender);
 	log.debug("Debugging message (appears in pop-up)");
 	log.error("Error message (appears in pop-up and in server log)");
+	//]]&gt;
 &lt;/script&gt;
 </pre>
+						<p>
+							<a href="../examples/example_manual.html" title="View example (opens in new window)"
+								target="_blank">See this example in action</a> (opens in new window)
+						</p>
 					</div>
 					<p class="linktotop">
 						<a href="#container">Top</a>
@@ -308,12 +369,20 @@
 							<ul class="params">
 								<li class="param">
 									<code class="paramname">loggerName</code>
+									[<em>optional</em>]
 								</li>
 							</ul>
 							<div class="summary">
-								Returns a logger with the specified name, creating it if a logger with that name does not
-								already exist. Note that the names "[root]", "[default]" and "[null]" are reserved for
-								the root logger, default logger and null logger respectively.
+								<p>
+									Returns a logger with the specified name, creating it if a logger with that name does not
+									already exist. If no name is specified, a logger is returned with name "[anonymous]", and
+									subsequent calls to <code>getLogger()</code> (with no logger name specified) will return
+									this same logger object.
+								</p>
+								<p>
+									Note that the names "[anonymous]", "[default]" and "[null]" are reserved for
+									the anonymous logger, default logger and null logger respectively.
+								</p>
 							</div>
 						</li>
 						<li class="method">
@@ -384,6 +453,35 @@
 								log4javascript.
 							</div>
 						</li>
+						<li class="method">
+							<div class="name">setShowStackTraces</div>
+							<div class="methodsignature"><code>void <strong>setShowStackTraces</strong>(Boolean <em>show</em>)</code></div>
+							<div class="paramsheading">Parameters:</div>
+							<ul class="params">
+								<li class="param">
+									<code class="paramname">show</code>
+								</li>
+							</ul>
+							<div class="summary">
+								Enables or disables displaying of error stack traces, depending on <code>show</code>.
+								By default, stack traces are not displayed. (Only works in Firefox)
+							</div>
+						</li>
+						<li class="method">
+							<div class="name">evalInScope</div>
+							<div class="methodsignature"><code>Object <strong>evalInScope</strong>(String <em>expr</em>)</code></div>
+							<div class="paramsheading">Parameters:</div>
+							<ul class="params">
+								<li class="param">
+									<code class="paramname">expr</code>
+								</li>
+							</ul>
+							<div class="summary">
+								This evaluates the given expression in the log4javascript scope, thus allowing 
+								scripts to access private variables and functions. This is intended for
+								automated testing but could be used by custom extensions to log4javascript.
+							</div>
+						</li>
 					</ul>
 					<p class="linktotop">
 						<a href="#container">Top</a>
@@ -422,7 +520,27 @@
 								</li>
 							</ul>
 							<div class="summary">
-								Adds an appender.
+								Adds the given appender appender.
+							</div>
+						</li>
+						<li class="method">
+							<div class="name">removeAppender</div>
+							<div class="methodsignature"><code>void <strong>removeAppender</strong>(Appender <em>appender</em>)</code></div>
+							<div class="paramsheading">Parameters:</div>
+							<ul class="params">
+								<li class="param">
+									<code class="paramname">appender</code>
+								</li>
+							</ul>
+							<div class="summary">
+								Removes the given appender.
+							</div>
+						</li>
+						<li class="method">
+							<div class="name">removeAllAppenders</div>
+							<div class="methodsignature"><code>void <strong>removeAllAppenders</strong>()</code></div>
+							<div class="summary">
+								Clears all appenders for the current logger.
 							</div>
 						</li>
 						<li class="method">
@@ -728,7 +846,7 @@
 							<li>
 								AjaxAppender relies on the <code>XMLHttpRequest</code> object. It also requires
 								the presence of correctly implemented <code>setRequestHeader</code> method on
-								this object, which rules Opera prior to version 8.01. If your browser does not
+								this object, which rules out Opera prior to version 8.01. If your browser does not
 								support the necessary objects then one alert will display to explain why it
 								doesn't work, after which the appender will silently switch off.
 							</li>
@@ -826,8 +944,8 @@
 													Each time the queue of log messages or batches of messages is cleared,
 													the countdown to the next sending only starts once the final request
 													has been sent (and, if <code>waitForResponse</code> is set to <code>true</code>,
-													the final response received). This means that the intervals at which
-													the queue of messages is cleared cannot be fixed.
+													the final response received). This means that the actual interval at
+													which the queue of messages is cleared cannot be fixed.
 												</li>
 											</ul>
 										</div>
@@ -839,7 +957,7 @@
 											<p>
 												A function that is called whenever a successful request is made, called at the
 												point at which the response is received. This feature can be used to confirm
-												whether request have been successful and act accordingly.
+												whether a request has been successful and act accordingly.
 											</p>
 											<p>
 												A single parameter, <code>xmlHttp</code>, is passed to the callback function.
@@ -953,6 +1071,21 @@
 								</div>
 							</li>
 							<li class="method">
+								<div class="name">getSessionId</div>
+								<div class="methodsignature"><code>String <strong>getSessionId</strong>()</code></div>
+								<div class="summary">
+									Returns the session id sent to the server each time a request is made.
+								</div>
+							</li>
+							<li class="method">
+								<div class="name">setSessionId</div>
+								<div class="methodsignature"><code>void <strong>setSessionId</strong>(String <em>sessionId</em>)</code></div>
+								<div class="summary">
+									<br />
+									Sets the session id sent to the server each time a request is made.
+								</div>
+							</li>
+							<li class="method">
 								<div class="name">sendAll</div>
 								<div class="methodsignature"><code>void <strong>sendAll</strong>()</code></div>
 								<div class="summary">
@@ -979,14 +1112,24 @@
 							<li>all whitespace in log messages is honoured (except in Wrap mode);</li>
 							<li>filters to show and hide messages of a particular level;</li>
 							<li>
-								search facility that allows searching of log messages as you type. The
-								search supports regular expressions and case sensitive or insensitive matching.
-								A search may also be enabled or disabled once created, and is also applied (if
-								enabled) to all log messages dynamically as they are added to the pop-up;
+								search facility that allows searching of log messages as you type, with the
+								following features:
+								<ul>
+									<li>supports regular expressions;</li>
+									<li>case sensitive or insensitive matching;</li>
+									<li>buttons to navigate through all the matches;</li>
+									<li>switch to highlight all matches;</li>
+									<li>switch to filter out all log messages that contain no matches;</li>
+									<li>switch to enable or disable the search;</li>
+									<li>search is dynamically applied to every log message as it is added to the console.</li>
+								</ul>
 							</li>
 							<li>switch to toggle between logging from the top down and from the bottom up;</li>
 							<li>switch to turn automatic scrolling when a new message is logged on and off;</li>
 							<li>switch to turn off all logging to the pop-up (useful if a timer is generating unnecessary log messages);</li>
+							<li>optional configurable limit to the number of log message that are displayed. If
+								set and this limit is reached, each new log message will cause the oldest one to
+								be discarded;</li>
 							<li>clear button to allow user to delete all current log messages.</li>
 						</ul>
 						<h4>Constructor</h4>
@@ -994,14 +1137,24 @@
 							<li class="method">
 								<div class="name">PopUpAppender</div>
 								<div class="methodsignature">
-									<code><strong>PopUpAppender</strong>(Layout <em>layout</em>, Boolean <em>lazyInit</em>,
+									<code><strong>PopUpAppender</strong>(Boolean <em>lazyInit</em>, Layout <em>layout</em>,
 									Boolean <em>focusPopUp</em>, Boolean <em>useOldPopUp</em>,
 									Boolean <em>complainAboutPopUpBlocking</em>,
 									Boolean <em>newestMessageAtTop</em>, Boolean <em>scrollToLatestMessage</em>,
-									Number <em>width</em>, Number <em>height</em>)</code>
+									Boolean <em>reopenWhenClosed</em>, Number <em>width</em>, Number <em>height</em>,
+									Number maxMessages)</code>
 								</div>
 								<div class="paramsheading">Parameters:</div>
 								<ul class="params">
+									<li class="param">
+										<code class="paramname">lazyInit</code> 
+										[<em>optional</em>]
+										<div>
+											Set this to <code>true</code> to open the pop-up only when the first log
+											message reaches the appender. Otherwise, the pop-up window opens as soon as the
+											appender is created. If not specified, defaults to <code>false</code>.
+										</div>
+									</li>
 									<li class="param">
 										<code class="paramname">layout</code> 
 										[<em>optional</em>]
@@ -1011,17 +1164,18 @@
 												<code><a href="#patternlayout">PatternLayout</a></code> with pattern string
 											</p>
 											<p>
-												<code>%d{HH:mm:ss} %-5p - %m%n</code>
+												<code>%d{HH:mm:ss} %-5p - %m{1}%n</code>
 											</p>
-										</div>
-									</li>
-									<li class="param">
-										<code class="paramname">lazyInit</code> 
-										[<em>optional</em>]
-										<div>
-											Set this to <code>true</code> to open the pop-up only when the first log
-											message reaches the appender. Otherwise, the pop-up window opens as soon as the
-											appender is created. If not specified, defaults to <code>false</code>.
+											<p><strong>Notes</strong></p>
+											<ul>
+												<li>
+													Prior to version 1.3, the <code>layout</code> and <code>lazyInit</code>
+													parameters were specified the other way round. This has been changed so
+													that in common with all other appenders, parameters that can only be
+													specified in the constructor (in this case <code>lazyInit</code>) are
+													specifed first.
+												</li>
+											</ul>
 										</div>
 									</li>
 									<li class="param">
@@ -1081,6 +1235,15 @@
 										</div>
 									</li>
 									<li class="param">
+										<code class="paramname">reopenWhenClosed</code> 
+										[<em>optional</em>]
+										<div>
+											Whether to reopen the pop-up window automatically at the time of the next
+											log entry after the original window was closed.
+											If not specified, defaults to <code>false</code>
+										</div>
+									</li>
+									<li class="param">
 										<code class="paramname">width</code> 
 										[<em>optional</em>]
 										<div>
@@ -1094,6 +1257,16 @@
 										<div>
 											The outer height in pixels of the pop-up window. If not specified,
 											defaults to <code>400</code>.
+										</div>
+									</li>
+									<li class="param">
+										<code class="paramname">maxMessages</code> 
+										[<em>optional</em>]
+										<div>
+											The largest number of log messages that are displayed and stored
+											by the the console. Once reached, a new log message wil cause the
+											oldest message to be discarded.  If not specified,
+											defaults to <code>null</code>, which means no limit is applied.
 										</div>
 									</li>
 								</ul>
@@ -1183,6 +1356,20 @@
 								</div>
 							</li>
 							<li class="method">
+								<div class="name">isReopenWhenClosed</div>
+								<div class="methodsignature"><code>Boolean <strong>isReopenWhenClosed</strong>()</code></div>
+								<div class="summary">
+									Returns whether the pop-up window reopens automatically after being closed when a new log message is logged.
+								</div>
+							</li>
+							<li class="method">
+								<div class="name">setReopenWhenClosed</div>
+								<div class="methodsignature"><code>void <strong>setReopenWhenClosed</strong>(Boolean <em>reopenWhenClosed</em>)</code></div>
+								<div class="summary">
+									Sets whether to reopen the pop-up window automatically after being closed when a new log message is logged.
+								</div>
+							</li>
+							<li class="method">
 								<div class="name">getWidth</div>
 								<div class="methodsignature"><code>Number <strong>getWidth</strong>()</code></div>
 								<div class="summary">
@@ -1215,6 +1402,23 @@
 								</div>
 							</li>
 							<li class="method">
+								<div class="name">getMaxMessages</div>
+								<div class="methodsignature"><code>Number <strong>getMaxMessages</strong>()</code></div>
+								<div class="summary">
+									Returns the largest number of messages displayed and stored by the console window.
+								</div>
+							</li>
+							<li class="method">
+								<div class="name">setMaxMessages</div>
+								<div class="methodsignature"><code>void <strong>setMaxMessages</strong>(Number <em>mxMessages</em>)</code></div>
+								<div class="summary">
+									[<em>not available after initialization</em>]
+									<br />
+									Sets the largest number of messages displayed and stored by the console window. Set
+									this to <code>null</code> to make this number unlimited.
+								</div>
+							</li>
+							<li class="method">
 								<div class="name">close</div>
 								<div class="methodsignature"><code>void <strong>close</strong>()</code></div>
 								<div class="summary">
@@ -1226,22 +1430,30 @@
 							<a href="#container">Top</a>
 						</p>
 					</div>
-					<div id="inlineappender">
-						<h3>InlineAppender</h3>
+					<div id="inpageappender">
+						<h3>InPageAppender</h3>
 						<p>
-							Logs messages to an inline console window in the page. The console is identical
+							Logs messages to a console window in the page. The console is identical
 							to that used by the <code><a href="#popupappender">PopUpAppender</a></code>, except
 							for the absence of a 'Close' button.
 						</p>
+						<p><strong>Notes</strong></p>
+						<ul>
+							<li>
+								Prior to log4javascript 1.3, InPageAppender was known as InlineAppender.
+								For the sake of backwards compatibility, InlineAppender is still included in
+								1.3 as an alias for InPageAppender.
+							</li>
+						</ul>
 						<h4>Constructor</h4>
 						<ul class="propertieslist">
 							<li class="method">
-								<div class="name">InlineAppender</div>
+								<div class="name">InPageAppender</div>
 								<div class="methodsignature">
-									<code><strong>InlineAppender</strong>(HTMLElement <em>containerElement</em>,
+									<code><strong>InPageAppender</strong>(HTMLElement <em>containerElement</em>,
 									Boolean <em>lazyInit</em>, Layout <em>layout</em>, Boolean <em>initiallyMinimized</em>,
 									Boolean <em>newestMessageAtTop</em>, Boolean <em>scrollToLatestMessage</em>,
-									String <em>width</em>, String <em>height</em>)</code>
+									String <em>width</em>, String <em>height</em>, Number <em>maxMessages</em>)</code>
 								</div>
 								<div class="paramsheading">Parameters:</div>
 								<ul class="params">
@@ -1269,7 +1481,7 @@
 												<code><a href="#patternlayout">PatternLayout</a></code> with pattern string
 											</p>
 											<p>
-												<code>%d{HH:mm:ss} %-5p - %m%n</code>
+												<code>%d{HH:mm:ss} %-5p - %m{1}%n</code>
 											</p>
 										</div>
 									</li>
@@ -1321,6 +1533,16 @@
 										<div>
 											The height of the console window. Any valid CSS length may be used. If not
 											specified, defaults to <code>250px</code>.
+										</div>
+									</li>
+									<li class="param">
+										<code class="paramname">maxMessages</code> 
+										[<em>optional</em>]
+										<div>
+											The largest number of log messages that are displayed and stored
+											by the the console. Once reached, a new log message wil cause the
+											oldest message to be discarded.  If not specified,
+											defaults to <code>null</code>, which means no limit is applied.
 										</div>
 									</li>
 								</ul>
@@ -1376,14 +1598,14 @@
 							</li>
 							<li class="method">
 								<div class="name">getWidth</div>
-								<div class="methodsignature"><code>Number <strong>getWidth</strong>()</code></div>
+								<div class="methodsignature"><code>String <strong>getWidth</strong>()</code></div>
 								<div class="summary">
 									Returns the outer width of the console window.
 								</div>
 							</li>
 							<li class="method">
 								<div class="name">setWidth</div>
-								<div class="methodsignature"><code>void <strong>setWidth</strong>(Number <em>width</em>)</code></div>
+								<div class="methodsignature"><code>void <strong>setWidth</strong>(String <em>width</em>)</code></div>
 								<div class="summary">
 									[<em>not available after initialization</em>]
 									<br />
@@ -1392,18 +1614,35 @@
 							</li>
 							<li class="method">
 								<div class="name">getHeight</div>
-								<div class="methodsignature"><code>Number <strong>getHeight</strong>()</code></div>
+								<div class="methodsignature"><code>String <strong>getHeight</strong>()</code></div>
 								<div class="summary">
 									Returns the outer height of the console window.
 								</div>
 							</li>
 							<li class="method">
 								<div class="name">setHeight</div>
-								<div class="methodsignature"><code>void <strong>setHeight</strong>(Number <em>height</em>)</code></div>
+								<div class="methodsignature"><code>void <strong>setHeight</strong>(String <em>height</em>)</code></div>
 								<div class="summary">
 									[<em>not available after initialization</em>]
 									<br />
 									Sets the outer height of the console window. Any valid CSS length may be used.
+								</div>
+							</li>
+							<li class="method">
+								<div class="name">getMaxMessages</div>
+								<div class="methodsignature"><code>Number <strong>getMaxMessages</strong>()</code></div>
+								<div class="summary">
+									Returns the largest number of messages displayed and stored by the console window.
+								</div>
+							</li>
+							<li class="method">
+								<div class="name">setMaxMessages</div>
+								<div class="methodsignature"><code>void <strong>setMaxMessages</strong>(Number <em>mxMessages</em>)</code></div>
+								<div class="summary">
+									[<em>not available after initialization</em>]
+									<br />
+									Sets the largest number of messages displayed and stored by the console window. Set
+									this to <code>null</code> to make this number unlimited.
 								</div>
 							</li>
 							<li class="method">
@@ -1454,13 +1693,32 @@
 						<h3>BrowserConsoleAppender</h3>
 						<p>
 							Writes log messages to the browser's built-in console, if present. This only works
-							currently in Safari and Opera.
+							currently in Safari, Opera and Firefox with the excellent
+							<a href="http://www.joehewitt.com/software/firebug/" title="FireBug home page (opens in new window)"
+							target="_blank">FireBug</a> extension installed.
 						</p>
 						<p><strong>Notes</strong></p>
 						<ul>
 							<li>
-								To prevent clogging up the broswer's console, the default threshold for this type of
-								appender is <code>WARN</code>.
+								As of log4javascript 1.3, the default threshold for this appender is <code>DEBUG</code>
+								as opposed to <code>WARN</code> as it was previously;
+							</li>
+							<li>
+								<p>
+									As of version 1.3, log4javascript has explicit support for FireBug's logging. This includes
+									the following mapping of log4javascript's log levels onto FireBug's:
+								<p>
+								<ul>
+									<li>log4javascript <code>TRACE</code>, <code>DEBUG</code> -&gt; FireBug <code>debug</code></li>
+									<li>log4javascript <code>INFO</code> -&gt; FireBug <code>info</code></li>
+									<li>log4javascript <code>WARN</code> -&gt; FireBug <code>warn</code></li>
+									<li>log4javascript <code>ERROR</code>, <code>FATAL</code> -&gt; FireBug <code>error</code></li>
+								</ul>
+								<p>
+									... and the ability to pass objects into FireBug and take advantage of its object inspection.
+									This is because the default layout is now <code><a href="#nulllayout">NullLayout</a></code>,
+									which performs no formatting on an object.
+								</p>
 							</li>
 						</ul>
 						<h4>Constructor</h4>
@@ -1474,8 +1732,17 @@
 										<code class="paramname">layout</code> 
 										[<em>optional</em>]
 										<div>
-											The layout for the appender. If not specified, defaults to
-											<code><a href="#simplelayout">SimpleLayout</a></code>.
+											<p>
+												The layout for the appender. If not specified, defaults to
+												<code><a href="#nulllayout">NullLayout</a></code>.
+											</p>
+											<p><strong>Notes</strong></p>
+											<ul>
+												<li>
+													Prior to log4javascript 1.3, the default layout was
+													<code><a href="#simplelayout">SimpleLayout</a></code>
+												</li>
+											</ul>
 										</div>
 									</li>
 								</ul>
@@ -1491,7 +1758,7 @@
 					<div id="layout">
 						<h3>Layout</h3>
 						<p>
-							There is a single method common to all layouts:
+							There are a few methods common to all layouts:
 						</p>
 						<h4>Methods</h4>
 						<ul class="propertieslist">
@@ -1508,6 +1775,149 @@
 									Formats the log message. You should override this method in your own layouts.
 								</div>
 							</li>
+							<li class="method">
+								<div class="name">ignoresThrowable</div>
+								<div class="methodsignature"><code>Boolean <strong>ignoresThrowable</strong>()</code></div>
+								<div class="summary">
+									Returns whether the layout ignores an error object in a logging event passed
+									to its <code>format</code> method.
+								</div>
+							</li>
+							<li class="method">
+								<div class="name">getContentType</div>
+								<div class="methodsignature"><code>String <strong>getContentType</strong>()</code></div>
+								<div class="summary">
+									Returns the content type of the output of the layout.
+								</div>
+							</li>
+							<li class="method">
+								<div class="name">allowBatching</div>
+								<div class="methodsignature"><code>Boolean <strong>allowBatching</strong>()</code></div>
+								<div class="summary">
+									Returns whether the layout's output is suitable for batching.
+									<code><a href="#jsonlayout">JsonLayout</a></code> and <code><a href="#xmllayout">XmlLayout</a></code>
+									are the only layouts that return true for this method.
+								</div>
+							</li>
+							<li class="method">
+								<div class="name">getDataValues</div>
+								<div class="methodsignature"><code>Array <strong>getDataValues</strong>(LoggingEvent <em>loggingEvent</em>)</code></div>
+								<div class="paramsheading">Parameters:</div>
+								<ul class="params">
+									<li class="param">
+										<code class="paramname">loggingEvent</code>
+									</li>
+								</ul>
+								<div class="summary">
+									Used internally by log4javascript in constructing formatted output for some layouts.
+								</div>
+							</li>
+							<li class="method">
+								<div class="name">setKeys</div>
+								<div class="methodsignature"><code>void <strong>setKeys</strong>(String <em>loggerKey</em>,
+									String <em>timeStampKey</em>, String <em>levelKey</em>, String <em>messageKey</em>,
+									String <em>exceptionKey</em>, String <em>urlKey</em>)</code></div>
+								<div class="paramsheading">Parameters:</div>
+								<ul class="params">
+									<li class="param">
+										<code class="paramname">loggerKey</code>
+										<div>
+											Parameter to use for the log message's logger name. Default is <code>logger</code>.
+										</div>
+									</li>
+									<li class="param">
+										<code class="paramname">timeStampKey</code>
+										<div>
+											Parameter to use for the log message's timestamp.  Default is <code>timestamp</code>.
+										</div>
+									</li>
+									<li class="param">
+										<code class="paramname">levelKey</code>
+										<div>
+											Parameter to use for the log message's level. Default is <code>level</code>.
+										</div>
+									</li>
+									<li class="param">
+										<code class="paramname">messageKey</code>
+										<div>
+											Parameter to use for the message itself. Default is <code>message</code>.
+										</div>
+									</li>
+									<li class="param">
+										<code class="paramname">exceptionKey</code>
+										<div>
+											Parameter to use for the log message's error (exception). Default is <code>exception</code>.
+										</div>
+									</li>
+									<li class="param">
+										<code class="paramname">urlKey</code>
+										<div>
+											Parameter to use for the current page URL. Default is <code>url</code>.
+										</div>
+									</li>
+								</ul>
+								<div class="summary">
+									This method is used to change the default keys used to create formatted name-value pairs
+									for the properties of a log message, for layouts that do this. These layouts are
+									<code><a href="#jsonlayout">JsonLayout</a></code> and
+									<code><a href="#httppostdatalayout">HttpPostDataLayout</a></code>.
+								</div>
+							</li>
+							<li class="method">
+								<div class="name">setCustomField</div>
+								<div class="methodsignature"><code>void <strong>setCustomField</strong>(String <em>name</em>,
+									String <em>value</em>)</code></div>
+								<div class="paramsheading">Parameters:</div>
+								<ul class="params">
+									<li class="param">
+										<code class="paramname">name</code>
+										<div>
+											Name of the custom property you wish to be included in the formmtted output.
+										</div>
+									</li>
+									<li class="param">
+										<code class="paramname">value</code>
+										<div>
+											Value of the custom property you wish to be included in the formatted output.
+										</div>
+									</li>
+								</ul>
+								<div class="summary">
+									Some layouts (<code><a href="#jsonlayout">JsonLayout</a></code>,
+									<code><a href="#httppostdatalayout">HttpPostDataLayout</a></code>,
+									<code><a href="#patternlayout">PatternLayout</a></code> and 
+									<code><a href="#xmllayout">XmlLayout</a></code>) allow you to set
+									custom fields (e.g. a session id to send to the server) to the
+									formatted output. Use this method to set a custom field. If there
+									is already a custom field with the specified name, its value will
+									be updated with <code>value</code>.
+								</div>
+							</li>
+							<li class="method">
+								<div class="name">hasCustomFields</div>
+								<div class="methodsignature"><code>Boolean <strong>hasCustomFields</strong>()</code></div>
+								<div class="summary">
+									Returns whether the layout has any custom fields.
+								</div>
+							</li>
+						</ul>
+						<p class="linktotop">
+							<a href="#container">Top</a>
+						</p>
+					</div>
+					<div id="nulllayout">
+						<h3>NullLayout</h3>
+						<p>
+							The most basic layout. NullLayout's <code>format()</code> methods performs no
+							formatting at all and simply returns the <code>message</code> property of the
+							logging event.
+						</p>
+						<h4>Constructor</h4>
+						<ul class="propertieslist">
+							<li class="method">
+								<div class="name">NullLayout</div>
+								<div class="methodsignature"><code><strong>NullLayout</strong>()</code></div>
+							</li>
 						</ul>
 						<p class="linktotop">
 							<a href="#container">Top</a>
@@ -1516,7 +1926,7 @@
 					<div id="simplelayout">
 						<h3>SimpleLayout</h3>
 						<p>
-							The most basic layout. SimpleLayout consists of the level of the log statement,
+							Provides the most basic formatting. SimpleLayout consists of the level of the log statement,
 							followed by " - " and then the log message itself. For example,
 						</p>
 						<p><code>DEBUG - Hello world</code></p>
@@ -1537,8 +1947,8 @@
 							Provides a flexible way of formatting a log message by means of a conversion pattern
 							string. The behaviour of this layout is a full implementation of <code>PatternLayout</code>
 							in log4j, with the exception of the set of conversion characters - log4javascript's is
-							necessarily a subset of that of log4j, since many of the conversion characters in log4j
-							only make sense in the context of Java.
+							necessarily a subset of that of log4j with a few additions of its own, since many of
+							the conversion characters in log4j only make sense in the context of Java.
 						</p>
 						<p>
 							The conversion pattern consists of literal text interspersed with special strings starting with
@@ -1587,11 +1997,34 @@
 									</td>
 								</tr>
 								<tr>
+									<td>f</td>
+									<td>
+										<p>
+											Outputs the value of a custom field set on the layout. If present, the specifier gives
+											the index in the array of custom fields to use; otherwise, the first custom field in the
+											array is used.
+										</p>
+										<p>
+											<strong>Since: 1.3</strong>
+										</p>
+									</td>
+								</tr>
+								<tr>
 									<td>m</td>
 									<td>
 										<p>
 											Outputs the message property of the logging event (i.e. the logging 
 											message supplied by the client code).
+										</p>
+										<p>
+											As of version 1.3, an object may be specified as the log message and will
+											be expanded to show its properties in the output, provided that a specifier
+											containing the number of levels to expand is provided. If no specifier is
+											provided then the message will be treated as a string regardless of its type.
+											For example, <code>%m{1}</code> will display an expansion of the object one
+											level deep, i.e. each property of the object will be displayed but if the
+											property value is itself an object it will not be expanded and will appear
+											as <code>[object Object]</code>.
 										</p>
 									</td>
 								</tr>
@@ -1708,6 +2141,16 @@
 								The <code>&lt;log4javascript:exception&gt;</code> element is only present if an
 								exception was passed into the original log call.
 							</li>
+							<li>
+								<p>
+									As of version 1.3, custom fields may be added to the output. Each field will
+									add a tag of the following form inside the <code>&lt;log4javascript:event&gt;</code>
+									tag:
+								</p>
+								<pre>
+&lt;log4javascript:customfield name="sessionid"&gt;&lt;![CDATA[1234]]&gt;&lt;/log4javascript:customfield&gt;
+</pre>
+							</li>
 						</ul>
 						<h4>Constructor</h4>
 						<ul class="propertieslist">
@@ -1753,6 +2196,15 @@
 								the layout formats the log message as a single JavaScript object literal;
 								when sent as a batch, the messages are formatted as an array literal whose
 								elements are log message objects.
+							</li>
+							<li>
+								<p>
+									As of version 1.3, custom fields may be added to the output. Each field will
+									add a property of the following form to the main object literal:
+								</p>
+								<pre>
+	"sessionid": 1234
+</pre>
 							</li>
 						</ul>
 						<h4>Constructor</h4>
@@ -1813,6 +2265,23 @@
 										</div>
 									</li>
 								</ul>
+							</li>
+						</ul>
+						<h4>Methods</h4>
+						<ul class="propertieslist">
+							<li class="method">
+								<div class="name">setReadable</div>
+								<div class="methodsignature"><code>void <strong>setReadable</strong>(Boolean <em>readable</em>)</code></div>
+								<div class="summary">
+									Sets whether or not to format each log message with line breaks and tabs.								
+								</div>
+							</li>
+							<li class="method">
+								<div class="name">isReadable</div>
+								<div class="methodsignature"><code>Boolean <strong>isReadable</strong>()</code></div>
+								<div class="summary">
+									Returns whether or not to each log message is formatted with line breaks and tabs.								
+								</div>
 							</li>
 						</ul>
 					</div>
@@ -1877,6 +2346,15 @@
 								</ul>
 							</li>
 						</ul>
+						<p><strong>Notes</strong></p>
+						<ul>
+							<li>
+								<p>
+									As of version 1.3, custom fields may be added to the output. Each field will
+									be added as a parameter to the post data.
+								</p>
+							</li>
+						</ul>
 						<p class="linktotop">
 							<a href="#container">Top</a>
 						</p>
@@ -1885,7 +2363,7 @@
 				<div id="enabling">
 					<h2>Enabling / disabling log4javascript</h2>
 					<p>
-						All logging can be enabled disabled in log4javascript in a number of ways:
+						All logging can be enabled or disabled in log4javascript in a number of ways:
 					</p>
 					<ul>
 						<li>
@@ -1909,6 +2387,13 @@
 						</li>
 						<li>
 							Assign your logger object a value of <code>log4javascript.getNullLogger()</code>.
+						</li>
+						<li>
+							Replace your copy of log4javascript.js with log4javascript_stub.js, provided in the
+							distribution. This file has a stub version of each of the functions and methods
+							in the log4javascript API and can simply be dropped in in place of the main file.
+							The compressed version of the stub is around 3Kb in size as opposed to 63Kb for the
+							compressed version of the proper file.
 						</li>
 					</ul>
 					<p class="linktotop">
@@ -2023,8 +2508,8 @@
 					<h2>Differences between log4javascript and log4j</h2>
 					<p>
 						For the sake of keeping log4javascript light and useful, many
-						of the more complex features of log4j have not been implemented.
-						These include:
+						of the features of log4j that seem over-complex or inappropriate
+						for JavaScript have not been implemented. These include:
 					</p>
 					<ul>
 						<li>Filters</li>
@@ -2034,11 +2519,10 @@
 					<p>
 						log4javascript allows for multiple loggers but does not	carry over the
 						idea of logger hierarchies and hence additivity of appenders from log4j;
-						logger names carry no special significance in log4javascript, as I felt
-						this was overkill in JavaScript, which does not itself have the
+						logger names carry no special significance in log4javascript, as it
+						seems like overkill in JavaScript, which does not itself have the
 						hierarchical package structure of Java that lends itself so nicely to
-						log4j's logger hierarchy. However, if anyone has a burning desire for it,
-						I would consider implementing it.
+						log4j's logger hierarchy.
 					</p>
 					<p class="linktotop">
 						<a href="#container">Top</a>
@@ -2054,7 +2538,9 @@
 				log4javascript is distributed under the <a href="http://www.apache.org/licenses/LICENSE-2.0.html"
 					title="Apache License, Version 2.0 (opens in new window)" target="_blank">Apache License,
 					Version 2.0</a>
+<!--build:sflogo-->	
 			</div>
 		</div>
+<!--build:googleanalytics-->	
 	</body>
 </html>

@@ -1,0 +1,122 @@
+<?xml version="1.0"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+	<head>
+		<title>log4javascript - Tests</title>
+		<!--<script type="text/javascript" src="../log4javascript.js"></script>-->
+		<script type="text/javascript">
+			//<![CDATA[
+			var ajaxResponseText = null;
+			var ajaxResponseReceived = false;
+			var ajaxErrorMessage = "";
+			
+			var logMessageText = "Hello world!";
+			var expectedResponseText = "test";
+			
+			function errorHandler(message, exception) {
+				throw new Error(message);
+			}
+			
+			var haveRunTests = false;
+			function runTestsOnce() {
+				if (!haveRunTests) {
+					runTests();
+				}
+				haveRunTests = true;
+			}
+			
+			var log;
+			
+			function setUpPage() {
+				runTestsOnce();
+			}
+			
+			function fail(errorMessage) {
+				var div = document.createElement("h2");
+				var textNode = document.createTextNode("TEST FAILED: " + errorMessage);
+				div.appendChild(textNode);
+				document.getElementById("messages").appendChild(div);
+				throw new Error(errorMessage);
+			}
+			
+			function pass(testName) {
+				var div = document.createElement("div");
+				var textNode = document.createTextNode("Test passed: " + testName);
+				div.appendChild(textNode);
+				document.getElementById("messages").appendChild(div);
+			}
+			
+			function allPassed() {
+				var div = document.createElement("h2");
+				var textNode = document.createTextNode("ALL TESTS PASSED!");
+				div.appendChild(textNode);
+				document.getElementById("messages").appendChild(div);
+				document.body.className = "success";
+			}
+			
+			function runTests() {
+				var testNames = exposeTestFunctionNames();
+				try {
+					for (var n = 0; n < 100; n++) {
+						for (var i = 0; i < testNames.length; i++) {
+							var f = window[testNames[i]];
+							f();
+							pass(testNames[i]);
+						}
+					}
+					allPassed();
+				} catch (e) {
+					return;
+				}
+			}
+
+			function assertTrue(errorMessage, item) {
+				if (!item) {
+					fail(errorMessage);
+					return false;
+				} else {
+					return true;
+				}
+			}
+			
+			function assertEquals(errorMessage, item1, item2) {
+				if (item1 != item2) {
+					fail(errorMessage);
+					return false;
+				} else {
+					return true;
+				}
+			}
+			
+			function exposeTestFunctionNames() {
+				return ["testPopUp"];
+			}
+			
+			var winNum = 1;
+
+			function testPopUp() {
+				var win = window.open("", "testwin" + winNum++);
+				win.document.open();
+				win.document.write("<html><body onload='self.close()'></body></html>");
+				win.document.close();
+			}
+
+			window.onload = setUpPage;
+			
+			//]]>
+		</script>
+		<style type="text/css">
+			body {
+				background-color: #cc6666;
+			}
+
+			body.success {
+				background-color: #66cc66;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="messages"></div>
+		<div id="inlineAppenderContainer"></div>
+	</body>
+</html>

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<Project consumer="JSCruncher Pro" version="3.0.0.150">
+  <DoCompressFiles>True</DoCompressFiles>
+  <DoManageFiles>True</DoManageFiles>
+  <FilesToCompress>
+    <Item>
+      <InputFolder>F:\websites\timdown.co.uk\version_current\log4javascript\log4javascript-1.3\working\</InputFolder>
+      <OutputFolder>F:\websites\timdown.co.uk\version_current\log4javascript\log4javascript-1.3\build\</OutputFolder>
+      <Mask>log4javascript.js</Mask>
+      <DoSubDirs>False</DoSubDirs>
+      <Prefix></Prefix>
+      <Suffix></Suffix>
+    </Item>
+  </FilesToCompress>
+  <FilesToManage>  </FilesToManage>
+  <Settings>
+    <Basic>
+      <Preamble>Compressed and obfuscated by JSCruncher Pro.\r\nhttp://nebiru.com/jscruncherpro</Preamble>
+      <DoPreamble>False</DoPreamble>
+      <DoCompress>True</DoCompress>
+      <DoObfuscate>False</DoObfuscate>
+      <DoAutoFixSemicolons>False</DoAutoFixSemicolons>
+      <LogFolder>F:\JSCruncher\logs\</LogFolder>
+      <MapFolder>F:\JSCruncher\maps\</MapFolder>
+      <UserDefinedMap>user_defined.jmap</UserDefinedMap>
+      <OutputFolder>F:\JSCruncher\output\</OutputFolder>
+      <MapFilesToUse>ecma.jmapx;style.jmapx;user_defined.jmap</MapFilesToUse>
+      <DefaultPrefix></DefaultPrefix>
+      <DefaultSuffix>_c</DefaultSuffix>
+      <JSMask>*.js</JSMask>
+      <HTMMask>*.htm*</HTMMask>
+    </Basic>
+    <FineTuning>
+      <RemoveExtraSemicolons>True</RemoveExtraSemicolons>
+      <RemoveWhitespace>True</RemoveWhitespace>
+      <RemoveComments>True</RemoveComments>
+      <CombineLiteralStrings>True</CombineLiteralStrings>
+      <RemoveTabs>True</RemoveTabs>
+      <RemoveLineFeeds>True</RemoveLineFeeds>
+      <RemoveCarriageReturns>True</RemoveCarriageReturns>
+      <RemoveFormFeeds>True</RemoveFormFeeds>
+      <RemoveExtraSpaces>True</RemoveExtraSpaces>
+    </FineTuning>
+    <PuctuationMarks>
+      <All>+;(){}*-=/,!&lt;&gt;?:|&amp;%</All>
+      <NoWhitespaceBefore>+;(){}*-=/,!&lt;&gt;?:|&amp;%</NoWhitespaceBefore>
+      <NoWhiteSpaceAfter>+;(){}*-=/,!&lt;&gt;?:|&amp;%</NoWhiteSpaceAfter>
+    </PuctuationMarks>
+  </Settings>
+</Project>
