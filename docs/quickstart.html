@@ -144,7 +144,9 @@
 				<pre class="code">
 	var log = log4javascript.getLogger("mylogger");
 	var layout = new log4javascript.PatternLayout("[%-5p] %m");
-	var popUpAppender = new log4javascript.PopUpAppender(layout);
+	var popUpAppender = new log4javascript.PopUpAppender();
+	popUpAppender.setLayout(layout);
+	log.addAppender(popUpAppender);
 </pre>
 				<p>A call to</p>
 				<pre class="code">
