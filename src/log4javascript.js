@@ -10,8 +10,8 @@
  * identical version of this file.
  *
  * Author: Tim Down <tim@timdown.co.uk>
- * Version: 1.3
- * Last modified: 19/10/2006
+ * Version: %%build:version%%
+ * Last modified: 8/11/2006
  * Website: http://www.timdown.co.uk/log4javascript
  */
 
@@ -268,7 +268,7 @@ var SimpleDateFormat;
 							rawData = date.getMilliseconds();
 							break;
 						case "Z":
-							rawData = date.getTimezoneOffset(); // This is returns the number of minutes since GMT was this time.
+							rawData = date.getTimezoneOffset(); // This returns the number of minutes since GMT was this time.
 							break;
 					}
 					// Format the raw data depending on the type
@@ -333,7 +333,7 @@ var SimpleDateFormat;
 
 	// Create logging object; this will be assigned properties and returned
 	log4javascript = {};
-	log4javascript.version = "1.3";
+	log4javascript.version = "%%build:version%%";
 
 	// Returns a nicely formatted representation of an error
 	function getExceptionStringRep(ex) {
@@ -400,6 +400,10 @@ var SimpleDateFormat;
 	function urlEncode(str) {
 		return escape(str).replace(/\+/g, "%2B").replace(/"/g, "%22").replace(/'/g, "%27").replace(/\//g, "%2F");
 	}
+	
+	function bool(obj) {
+		return Boolean(obj);
+	}
 
 	function array_remove(arr, val) {
 		var index = -1;
@@ -421,7 +425,7 @@ var SimpleDateFormat;
 		if (isUndefined(param)) {
 			return defaultValue;
 		} else {
-			return Boolean(param);
+			return bool(param);
 		}
 	}
 
@@ -463,7 +467,7 @@ var SimpleDateFormat;
 		quietMode: false,
 
 		setQuietMode: function(quietMode) {
-			this.quietMode = Boolean(quietMode);
+			this.quietMode = bool(quietMode);
 		},
 
 		numberOfErrors: 0,
@@ -523,7 +527,7 @@ var SimpleDateFormat;
 		log4javascript_disabled ? false : true;
 
 	log4javascript.setEnabled = function(enable) {
-		enabled = Boolean(enable);
+		enabled = bool(enable);
 	};
 
 	log4javascript.isEnabled = function() {
@@ -539,7 +543,7 @@ var SimpleDateFormat;
 	var showStackTraces	= false;
 
 	log4javascript.setShowStackTraces = function(show) {
-		showStackTraces = Boolean(show);
+		showStackTraces = bool(show);
 	};
 
 	/* --------------------------------------------------------------------- */
@@ -883,7 +887,7 @@ var SimpleDateFormat;
 	// JsonLayout 
 	var JsonLayout = function(readable, loggerKey, timeStampKey,
 			levelKey, messageKey, exceptionKey, urlKey) {
-		this.readable = Boolean(readable);
+		this.readable = bool(readable);
 		this.batchHeader = this.readable ? "[" + newLine : "[";
 		this.batchFooter = this.readable ? "]" + newLine : "]";
 		this.batchSeparator = this.readable ? "," + newLine : ",";
@@ -897,7 +901,7 @@ var SimpleDateFormat;
 	JsonLayout.prototype = new Layout();
 
 	JsonLayout.prototype.setReadable = function(readable) {
-		this.readable = Boolean(readable);
+		this.readable = bool(readable);
 	};
 
 	JsonLayout.prototype.isReadable = function() {
@@ -917,9 +921,9 @@ var SimpleDateFormat;
 			// Check the type of the data value to decide whether quotation marks
 			// are required
 			var valType = typeof dataValues[i][1];
-			var val = (valType != "number" && valType != "boolean") ?
-				"\"" + escapeNewLines(dataValues[i][1].toString().replace(/\"/g, "\\\"")) + "\""
-				: dataValues[i][1];
+			var val = (valType != "number" && valType != "boolean")	?
+				"\"" + escapeNewLines(dataValues[i][1].toString().replace(/\"/g, "\\\"")) + "\"" :
+				dataValues[i][1];
 			str += "\"" + dataValues[i][0] + "\"" + this.colon + val;
 			if (i < dataValues.length - 1) {
 				str += this.propertySeparator;
@@ -1054,7 +1058,7 @@ var SimpleDateFormat;
 								if (isNaN(fieldIndex)) {
 									handleError("PatternLayout.format: invalid specifier '" +
 										specifier + "' for conversion character 'f' - should be a number");
-								} else if (fieldIndex == 0) {
+								} else if (fieldIndex === 0) {
 									handleError("PatternLayout.format: invalid specifier '" +
 										specifier + "' for conversion character 'f' - must be greater than zero");
 								} else if (fieldIndex > this.customFields.length) {
@@ -1262,7 +1266,7 @@ var SimpleDateFormat;
 			if (checkCanConfigure("layout")) {
 				this.layout = layout;
 				// Set the session id as a custom field on the layout, if not already present
-				if (sessionId != null) {
+				if (sessionId !== null) {
 					this.setSessionId(sessionId);
 				}
 			}
@@ -1275,7 +1279,7 @@ var SimpleDateFormat;
 		this.isTimed = function() { return timed; };
 		this.setTimed = function(timedParam) {
 			if (checkCanConfigure("timed")) {
-				timed = Boolean(timedParam);
+				timed = bool(timedParam);
 			}
 		};
 
@@ -1289,7 +1293,7 @@ var SimpleDateFormat;
 		this.isWaitForResponse = function() { return waitForResponse; };
 		this.setWaitForResponse = function(waitForResponseParam) {
 			if (checkCanConfigure("waitForResponse")) {
-				waitForResponse = Boolean(waitForResponseParam);
+				waitForResponse = bool(waitForResponseParam);
 			}
 		};
 
@@ -1361,7 +1365,7 @@ var SimpleDateFormat;
 					appender.getLayout().batchFooter;
 			}
 			return postData;
-		};
+		}
 
 		function scheduleSending() {
 			setTimeout(sendAll, timerInterval);
@@ -1509,927 +1513,7 @@ var SimpleDateFormat;
 	(function() {
 		var getConsoleHtmlLines = function() {
 			return [
-/* build:console_start */'<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">',
-'<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">',
-'	<head>',
-'		<title>log4javascript</title>',
-'		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />',
-'		<script type="text/javascript">',
-'			//<![CDATA[',
-'			var loggingEnabled = true;',
-'',
-'			function toggleLoggingEnabled() {',
-'				setLoggingEnabled($("enableLogging").checked);',
-'			}',
-'',
-'			function setLoggingEnabled(enable) {',
-'				loggingEnabled = enable;',
-'			}',
-'',
-'			var newestAtTop = false;',
-'',
-'			function setNewestAtTop(isNewestAtTop) {',
-'				var oldNewestAtTop = newestAtTop;',
-'				newestAtTop = Boolean(isNewestAtTop);',
-'				if (oldNewestAtTop != newestAtTop) {',
-'					// Invert the order of the log entries',
-'					var lc = getLogContainer();',
-'					var numberOfEntries = lc.childNodes.length;',
-'					var node = null;',
-'',
-'					// Remove all the log container nodes',
-'					var logContainerChildNodes = [];',
-'					while ((node = lc.firstChild)) {',
-'						lc.removeChild(node);',
-'						logContainerChildNodes.push(node);',
-'					}',
-'',
-'					// Put them all back in reverse order',
-'					while ((node = logContainerChildNodes.pop())) {',
-'						lc.appendChild(node);',
-'					}',
-'					',
-'					// Reassemble the matches array',
-'					if (currentSearch) {',
-'						var currentMatch = currentSearch.matches[currentMatchIndex];',
-'						var matchIndex = 0;',
-'						var matches = [];',
-'						var actOnLogEntry = function(logEntry) {',
-'							var logEntryMatches = logEntry.getSearchMatches();',
-'							for (var i = 0; i < logEntryMatches.length; i++) {',
-'								matches[matchIndex] = logEntryMatches[i];',
-'								if (currentMatch && logEntryMatches[i].equals(currentMatch)) {',
-'									currentMatchIndex = matchIndex;',
-'								}',
-'								matchIndex++;',
-'							}',
-'						};',
-'						if (newestAtTop) {',
-'							for (var i = logEntries.length - 1; i >= 0; i--) {',
-'								actOnLogEntry(logEntries[i]);',
-'							}',
-'						} else {',
-'							for (var i = 0; i < logEntries.length; i++) {',
-'								actOnLogEntry(logEntries[i]);',
-'							}',
-'						}',
-'						currentSearch.matches = matches;',
-'						if (currentMatch) {',
-'							currentMatch.setCurrent();',
-'						}',
-'					} else if (scrollToLatest) {',
-'						doScrollToLatest();',
-'					}',
-'				}',
-'				$("newestAtTop").checked = isNewestAtTop;',
-'			}',
-'',
-'			function toggleNewestAtTop() {',
-'				var isNewestAtTop = $("newestAtTop").checked;',
-'				setNewestAtTop(isNewestAtTop);',
-'			}',
-'',
-'			var scrollToLatest = true;',
-'',
-'			function setScrollToLatest(isScrollToLatest) {',
-'				scrollToLatest = isScrollToLatest;',
-'				if (scrollToLatest) {',
-'					doScrollToLatest();',
-'				}',
-'			}',
-'',
-'			function toggleScrollToLatest() {',
-'				var isScrollToLatest = $("scrollToLatest").checked;',
-'				setScrollToLatest(isScrollToLatest);',
-'			}',
-'',
-'			function doScrollToLatest() {',
-'				var l = getLogContainer();',
-'				if (typeof l.scrollTop != "undefined") {',
-'					if (newestAtTop) {',
-'						l.scrollTop = 0;',
-'					} else {',
-'						var latestLogEntry = l.lastChild;',
-'						if (latestLogEntry) {',
-'							l.scrollTop = l.scrollHeight;',
-'						}',
-'					}',
-'				}',
-'			}',
-'',
-'			var messagesBeforeDocLoaded = [];',
-'			',
-'			function log(logLevel, formattedMessage) {',
-'				if (loggingEnabled) {',
-'					if (loaded) {',
-'						doLog(logLevel, formattedMessage);',
-'					} else {',
-'						messagesBeforeDocLoaded.push([logLevel, formattedMessage]);',
-'					}',
-'				}',
-'			}',
-'',
-'			var logEntries = [];',
-'			var isCssWrapSupported;',
-'',
-'			function LogEntry(level, formattedMessage) {',
-'				this.level = level;',
-'				this.formattedMessage = formattedMessage;',
-'				this.mainDiv = document.createElement("div");',
-'				this.mainDiv.className = "logentry " + level.name;',
-'',
-'				// Support for the CSS attribute white-space in IE for Windows is',
-'				// non-existent pre version 6 and slightly odd in 6, so instead',
-'				// use two different HTML elements',
-'				if (isCssWrapSupported) {',
-'					this.mainDiv.appendChild(document.createTextNode(formattedMessage));',
-'				} else {',
-'					this.unwrappedPre = this.mainDiv.appendChild(document.createElement("pre"));',
-'					this.unwrappedPre.appendChild(document.createTextNode(formattedMessage));',
-'					this.unwrappedPre.className = "unwrapped";',
-'					this.wrappedSpan = this.mainDiv.appendChild(document.createElement("span"));',
-'					this.wrappedSpan.appendChild(document.createTextNode(formattedMessage));',
-'					this.wrappedSpan.className = "wrapped";',
-'				}',
-'			}',
-'',
-'			LogEntry.prototype.appendToLog = function() {',
-'				var lc = getLogContainer();',
-'				if (newestAtTop && lc.hasChildNodes()) {',
-'					lc.insertBefore(this.mainDiv, lc.firstChild);',
-'				} else {',
-'					getLogContainer().appendChild(this.mainDiv);',
-'				}',
-'			};',
-'',
-'			LogEntry.prototype.setContent = function(content) {',
-'				var lc = getLogContainer();',
-'				if (getLogContainer().currentStyle) {',
-'					this.unwrappedPre.innerHTML = content;',
-'					this.wrappedSpan.innerHTML = content;',
-'				} else {',
-'					this.mainDiv.innerHTML = content;',
-'				}',
-'			};',
-'			',
-'			LogEntry.prototype.getSearchMatches = function() {',
-'				var matches = [];',
-'				if (isCssWrapSupported) {',
-'					var els = getElementsByClass(this.mainDiv, "searchterm", "span");',
-'					for (var i = 0; i < els.length; i++) {',
-'						matches[i] = new Match(els[i]);',
-'					}',
-'				} else {',
-'					var unwrappedEls = getElementsByClass(this.unwrappedPre, "searchterm", "span");',
-'					var wrappedEls = getElementsByClass(this.wrappedSpan, "searchterm", "span");',
-'					for (i = 0; i < unwrappedEls.length; i++) {',
-'						matches[i] = new Match(null, unwrappedEls[i], wrappedEls[i]);',
-'					}',
-'				}',
-'				return matches;',
-'			};',
-'',
-'			function doLog(logLevel, formattedMessage) {',
-'				var logEntry = new LogEntry(logLevel, formattedMessage);',
-'				// Apply search',
-'				if (currentSearch) {',
-'					currentSearch.applyTo(logEntry);',
-'				}',
-'				logEntry.appendToLog();',
-'				logEntries.push(logEntry);',
-'				if (scrollToLatest) {',
-'					doScrollToLatest();',
-'				}',
-'			}',
-'',
-'			function mainPageReloaded() {',
-'				var separator = document.createElement("div");',
-'				separator.className = "separator";',
-'				separator.innerHTML = "&nbsp;";',
-'				getLogContainer().appendChild(separator);',
-'			}',
-'',
-'			window.onload = function() {',
-'				isCssWrapSupported = (typeof getLogContainer().currentStyle == "undefined");',
-'				setLogContainerHeight();',
-'				toggleLoggingEnabled();',
-'				toggleSearchEnabled();',
-'				toggleSearchFilter();',
-'				toggleSearchHighlight();',
-'				applyFilters();',
-'				toggleWrap();',
-'				toggleNewestAtTop();',
-'				toggleScrollToLatest();',
-'				doSearch();',
-'				while (messagesBeforeDocLoaded.length > 0) {',
-'					var currentMessage = messagesBeforeDocLoaded.shift();',
-'					doLog(currentMessage[0], currentMessage[1]);',
-'				}',
-'				loaded = true;',
-'				// Workaround to make sure log div starts at the correct size',
-'				setTimeout(setLogContainerHeight, 20);',
-'',
-'				// Remove "Close" button if not in pop-up mode',
-'				if (window != top) {',
-'					$("closeButton").style.display = "none";',
-'				}',
-'			};',
-'',
-'			var loaded = false;',
-'',
-'			var logLevels = ["TRACE", "DEBUG", "INFO", "WARN", "ERROR", "FATAL"];',
-'',
-'			function getCheckBox(logLevel) {',
-'				return $("switch_" + logLevel);',
-'			}',
-'',
-'			function getLogContainer() {',
-'				return $("log");',
-'			}',
-'',
-'			function applyFilters() {',
-'				for (var i = 0; i < logLevels.length; i++) {',
-'					if (getCheckBox(logLevels[i]).checked) {',
-'						addClass(getLogContainer(), logLevels[i]);',
-'					} else {',
-'						removeClass(getLogContainer(), logLevels[i]);',
-'					}',
-'				}',
-'			}',
-'',
-'			function toggleAllLevels() {',
-'				var turnOn = $("switch_ALL").checked;',
-'				for (var i = 0; i < logLevels.length; i++) {',
-'					getCheckBox(logLevels[i]).checked = turnOn;',
-'					if (turnOn) {',
-'						addClass(getLogContainer(), logLevels[i]);',
-'					} else {',
-'						removeClass(getLogContainer(), logLevels[i]);',
-'					}',
-'				}',
-'			}',
-'',
-'			function checkAllLevels() {',
-'				for (var i = 0; i < logLevels.length; i++) {',
-'					if (!getCheckBox(logLevels[i]).checked) {',
-'						getCheckBox("ALL").checked = false;',
-'						return;',
-'					}',
-'				}',
-'				getCheckBox("ALL").checked = true;',
-'			}',
-'',
-'			function clearLog() {',
-'				getLogContainer().innerHTML = "";',
-'				logEntries = [];',
-'				doSearch();',
-'			}',
-'',
-'			function toggleWrap() {',
-'				var enable = $("wrap").checked;',
-'				if (enable) {',
-'					addClass(getLogContainer(), "wrap");',
-'				} else {',
-'					removeClass(getLogContainer(), "wrap");',
-'				}',
-'			}',
-'',
-'			/* ------------------------------------------------------------------- */',
-'',
-'			// Search',
-'',
-'			var searchTimer = null;',
-'',
-'			function scheduleSearch() {',
-'				try {',
-'					clearTimeout(searchTimer);',
-'				} catch (ex) {',
-'					// Do nothing',
-'				}',
-'				searchTimer = setTimeout(doSearch, 500);',
-'			}',
-'',
-'			function Search(searchTerm, isRegex, searchRegex, isCaseSensitive) {',
-'				this.searchTerm = searchTerm;',
-'				this.isRegex = isRegex;',
-'				this.searchRegex = searchRegex;',
-'				this.isCaseSensitive = isCaseSensitive;',
-'				this.matches = [];',
-'			}',
-'',
-'			Search.prototype.hasMatches = function() {',
-'				return this.matches.length > 0;',
-'			};',
-'',
-'			Search.prototype.match = function(logEntry) {',
-'				var entryText = logEntry.formattedMessage;',
-'				var matchesSearch = false;',
-'				if (this.isRegex) {',
-'					matchesSearch = this.searchRegex.test(entryText);',
-'				} else if (this.isCaseSensitive) {',
-'					matchesSearch = (entryText.indexOf(this.searchTerm) > -1);',
-'				} else {',
-'					matchesSearch = (entryText.toLowerCase().indexOf(this.searchTerm.toLowerCase()) > -1);',
-'				}',
-'				return matchesSearch;',
-'			};',
-'',
-'			Search.prototype.applyTo = function(logEntry) {',
-'				var doesMatch = this.match(logEntry);',
-'				if (doesMatch) {',
-'					replaceClass(logEntry.mainDiv, "searchmatch", "searchnonmatch");',
-'					var logEntryContent;',
-'					if (this.isRegex) {',
-'						var flags = this.isCaseSensitive ? "g" : "gi";',
-'						var capturingRegex = new RegExp("(" + this.searchRegex.source + ")", flags);',
-'						logEntryContent = logEntry.formattedMessage.replace(capturingRegex, "<span class=\\\"searchterm\\\">$1</span>");',
-'					} else {',
-'						logEntryContent = "";',
-'						var searchTermReplacementStartTag = "<span class=\\\"searchterm\\\">";',
-'						var searchTermReplacementEndTag = "</span>";',
-'						var searchTermReplacementLength = searchTermReplacementStartTag.length + this.searchTerm.length + searchTermReplacementEndTag.length;',
-'						var searchTermLength = this.searchTerm.length;',
-'						var startIndex = 0;',
-'						var searchIndex;',
-'						var searchTermLowerCase = this.searchTerm.toLowerCase();',
-'						var logTextLowerCase = logEntry.formattedMessage.toLowerCase();',
-'						while ((searchIndex = logTextLowerCase.indexOf(searchTermLowerCase, startIndex)) > -1) {',
-'							var searchTermReplacement = searchTermReplacementStartTag + logEntry.formattedMessage.substr(searchIndex, this.searchTerm.length) + searchTermReplacementEndTag;',
-'							logEntryContent += logEntry.formattedMessage.substring(startIndex, searchIndex) + searchTermReplacement;',
-'							startIndex = searchIndex + searchTermLength;',
-'						}',
-'						logEntryContent += logEntry.formattedMessage.substr(startIndex);',
-'					}',
-'					logEntry.setContent(logEntryContent);',
-'					var logEntryMatches = logEntry.getSearchMatches();',
-'					this.matches = this.matches.concat(logEntryMatches);',
-'				} else {',
-'					replaceClass(logEntry.mainDiv, "searchnonmatch", "searchmatch");',
-'					logEntry.setContent(logEntry.formattedMessage);',
-'				}',
-'				return doesMatch;',
-'			};',
-'			',
-'			function getPageOffsetTop(el) {',
-'				var currentEl = el;',
-'				var y = 0;',
-'				while (currentEl) {',
-'					y += currentEl.offsetTop;',
-'					currentEl = currentEl.offsetParent;',
-'				}',
-'				return y;',
-'			}',
-'			',
-'			function scrollIntoView(el) {',
-'				getLogContainer().scrollLeft = el.offsetLeft;',
-'				getLogContainer().scrollTop = getPageOffsetTop(el) - getToolBarsHeight();',
-'			}',
-'			',
-'			function Match(spanInMainDiv, spanInUnwrappedPre, spanInWrappedSpan) {',
-'				this.spanInMainDiv = spanInMainDiv;',
-'				if (!isCssWrapSupported) {',
-'					this.spanInUnwrappedPre = spanInUnwrappedPre;',
-'					this.spanInWrappedSpan = spanInWrappedSpan;',
-'				}',
-'			}',
-'			',
-'			Match.prototype.equals = function(match) {',
-'				if (isCssWrapSupported) {',
-'					return this.spanInMainDiv === match.spanInMainDiv;',
-'				} else {',
-'					return this.spanInUnwrappedPre === match.spanInUnwrappedPre;',
-'				}',
-'			};',
-'			',
-'			Match.prototype.setCurrent = function() {',
-'				if (isCssWrapSupported) {',
-'					addClass(this.spanInMainDiv, "currentmatch");',
-'					scrollIntoView(this.spanInMainDiv);',
-'				} else {',
-'					addClass(this.spanInUnwrappedPre, "currentmatch");',
-'					addClass(this.spanInWrappedSpan, "currentmatch");',
-'					// Scroll the visible one into view',
-'					var elementToScroll = $("wrap").checked ? this.spanInWrappedSpan : this.spanInUnwrappedPre;',
-'					scrollIntoView(elementToScroll);',
-'				}',
-'			};',
-'',
-'			Match.prototype.setNotCurrent = function() {',
-'				if (isCssWrapSupported) {',
-'					removeClass(this.spanInMainDiv, "currentmatch");',
-'				} else {',
-'					removeClass(this.spanInUnwrappedPre, "currentmatch");',
-'					removeClass(this.spanInWrappedSpan, "currentmatch");',
-'				}',
-'			};',
-'',
-'			var currentSearch = null;',
-'			var currentMatchIndex = null;',
-'',
-'			function doSearch() {',
-'				var searchBox = $("searchBox");',
-'				var searchTerm = searchBox.value;',
-'				var isRegex = $("searchRegex").checked;',
-'				var isCaseSensitive = $("searchCaseSensitive").checked;',
-'				',
-'				if (searchTerm === "") {',
-'					$("searchReset").disabled = true;',
-'					$("searchNav").style.display = "none";',
-'					removeClass(document.body, "searching");',
-'					removeClass(searchBox, "hasmatches");',
-'					removeClass(searchBox, "nomatches");',
-'					for (var logEntry = getLogContainer().firstChild; logEntry !== null; logEntry = logEntry.nextSibling) {',
-'						removeClass(logEntry, "searchmatch");',
-'						removeClass(logEntry, "searchnonmatch");',
-'					}',
-'					setLogContainerHeight();',
-'				} else {',
-'					$("searchReset").disabled = false;',
-'					$("searchNav").style.display = "block";',
-'					var searchRegex;',
-'					var regexValid;',
-'					if (isRegex) {',
-'						try {',
-'							searchRegex = isCaseSensitive ? new RegExp(searchTerm, "g") : new RegExp(searchTerm, "gi");',
-'							regexValid = true;',
-'							replaceClass(searchBox, "validregex", "invalidregex");',
-'							searchBox.title = "Valid regex";',
-'						} catch (ex) {',
-'							regexValid = false;',
-'							replaceClass(searchBox, "invalidregex", "validregex");',
-'							searchBox.title = "Invalid regex: " + (ex.message ? ex.message : (ex.description ? ex.description : "unknown error"));',
-'							return;',
-'						}',
-'					} else {',
-'						searchBox.title = "";',
-'						removeClass(searchBox, "validregex");',
-'						removeClass(searchBox, "invalidregex");',
-'					}',
-'					addClass(document.body, "searching");',
-'					currentSearch = new Search(searchTerm, isRegex, searchRegex, isCaseSensitive);',
-'					for (var i = 0; i < logEntries.length; i++) {',
-'						currentSearch.applyTo(logEntries[i]);',
-'					}',
-'					setLogContainerHeight();',
-'',
-'					// Highlight the first search match',
-'					if (currentSearch.hasMatches()) {',
-'						setCurrentMatchIndex(0);',
-'						replaceClass(searchBox, "hasmatches", "nomatches");',
-'						searchBox.title = "" + currentSearch.matches.length + " matches found";',
-'					} else {',
-'						replaceClass(searchBox, "nomatches", "hasmatches");',
-'						searchBox.title = "No matches found";',
-'					}',
-'				}',
-'			}',
-'',
-'			function toggleSearchEnabled(enable) {',
-'				enable = (typeof enable == "undefined") ? !$("searchDisable").checked : enable;',
-'				$("searchBox").disabled = !enable;',
-'				$("searchReset").disabled = !enable;',
-'				$("searchRegex").disabled = !enable;',
-'				$("searchNext").disabled = !enable;',
-'				$("searchPrevious").disabled = !enable;',
-'				$("searchCaseSensitive").disabled = !enable;',
-'				$("searchNav").style.display = (enable && ($("searchBox").value !== "")) ?',
-'					"block" : "none";',
-'				if (enable) {',
-'					removeClass($("search"), "greyedout");',
-'					addClass(document.body, "searching");',
-'					if ($("searchHighlight").checked) {',
-'						addClass(getLogContainer(), "searchhighlight");',
-'					} else {',
-'						removeClass(getLogContainer(), "searchhighlight");',
-'					}',
-'					if ($("searchFilter").checked) {',
-'						addClass(getLogContainer(), "searchfilter");',
-'					} else {',
-'						removeClass(getLogContainer(), "searchfilter");',
-'					}',
-'					$("searchDisable").checked = !enable;',
-'				} else {',
-'					addClass($("search"), "greyedout");',
-'					removeClass(document.body, "searching");',
-'					removeClass(getLogContainer(), "searchhighlight");',
-'					removeClass(getLogContainer(), "searchfilter");',
-'				}',
-'				setLogContainerHeight();',
-'			}',
-'			',
-'			function toggleSearchFilter() {',
-'				var enable = $("searchFilter").checked;',
-'				if (enable) {',
-'					addClass(getLogContainer(), "searchfilter");',
-'				} else {',
-'					removeClass(getLogContainer(), "searchfilter");',
-'				}',
-'			}',
-'',
-'			function toggleSearchHighlight() {',
-'				var enable = $("searchHighlight").checked;',
-'				if (enable) {',
-'					addClass(getLogContainer(), "searchhighlight");',
-'				} else {',
-'					removeClass(getLogContainer(), "searchhighlight");',
-'				}',
-'			}',
-'			',
-'			function clearSearch() {',
-'				$("searchBox").value = "";',
-'				doSearch();',
-'			}',
-'			',
-'			function searchNext() {',
-'				if (currentSearch !== null && currentMatchIndex !== null) {',
-'					currentSearch.matches[currentMatchIndex].setNotCurrent();',
-'					if (currentMatchIndex == currentSearch.matches.length - 1) {',
-'						if (confirm("Reached the end of the page. Start from the top?")) {',
-'							setCurrentMatchIndex(0, true);',
-'						}',
-'					} else {',
-'						setCurrentMatchIndex(currentMatchIndex + 1, true);',
-'					}',
-'				}',
-'			}',
-'',
-'			function searchPrevious() {',
-'				if (currentSearch !== null && currentMatchIndex !== null) {',
-'					currentSearch.matches[currentMatchIndex].setNotCurrent();',
-'					if (currentMatchIndex === 0) {',
-'						if (confirm("Reached the start of the page. Continue from the bottom?")) {',
-'							setCurrentMatchIndex(currentSearch.matches.length - 1, false);',
-'						}',
-'					} else {',
-'						setCurrentMatchIndex(currentMatchIndex - 1, false);',
-'					}',
-'				}',
-'			}',
-'			',
-'			function setCurrentMatchIndex(index) {',
-'				currentMatchIndex = index;',
-'				currentSearch.matches[currentMatchIndex].setCurrent();',
-'			}',
-'',
-'			/* ------------------------------------------------------------------------- */',
-'			',
-'			// CSS Utilities',
-'			',
-'			function addClass(el, cssClass) {',
-'				if (!hasClass(el, cssClass)) {',
-'					if (el.className) {',
-'						el.className += " " + cssClass;',
-'					} else {',
-'						el.className = cssClass;',
-'					}',
-'				}',
-'			}',
-'',
-'			function hasClass(el, cssClass) {',
-'				if (el.className) {',
-'					var classNames = el.className.split(" ");',
-'					return array_contains(classNames, cssClass);',
-'				}',
-'				return false;',
-'			}',
-'',
-'			function removeClass(el, cssClass) {',
-'				if (hasClass(el, cssClass)) {',
-'					// Rebuild the className property',
-'					var existingClasses = el.className.split(" ");',
-'					var newClasses = [];',
-'					for (var i = 0; i < existingClasses.length; i++) {',
-'						if (existingClasses[i] != cssClass) {',
-'							newClasses[newClasses.length] = existingClasses[i];',
-'						}',
-'					}',
-'					el.className = newClasses.join(" ");',
-'				}',
-'			}',
-'',
-'			function replaceClass(el, newCssClass, oldCssClass) {',
-'				removeClass(el, oldCssClass);',
-'				addClass(el, newCssClass);',
-'			}',
-'',
-'			/* ------------------------------------------------------------------------- */',
-'',
-'			// Other utility functions',
-'			',
-'			function getElementsByClass(el, cssClass, tagName) {',
-'				var elements = el.getElementsByTagName(tagName);',
-'				var matches = [];',
-'				for (var i = 0; i < elements.length; i++) {',
-'					if (hasClass(elements[i], cssClass)) {',
-'						matches.push(elements[i]);',
-'					}',
-'				}',
-'				return matches;',
-'			}',
-'			',
-'			// Syntax borrowed from Prototype library',
-'			function $(id) {',
-'				return document.getElementById(id);',
-'			}',
-'',
-'			function getWindowWidth() {',
-'				if (window.innerWidth) {',
-'					return window.innerWidth;',
-'				} else if (document.documentElement && document.documentElement.clientWidth) {',
-'					return document.documentElement.clientWidth;',
-'				} else if (document.body) {',
-'					return document.body.clientWidth;',
-'				}',
-'				return 0;',
-'			}',
-'',
-'			function getWindowHeight() {',
-'				if (window.innerHeight) {',
-'					return window.innerHeight;',
-'				} else if (document.documentElement && document.documentElement.clientHeight) {',
-'					return document.documentElement.clientHeight;',
-'				} else if (document.body) {',
-'					return document.body.clientHeight;',
-'				}',
-'				return 0;',
-'			}',
-'			',
-'			function getToolBarsHeight() {',
-'				return $("switches").offsetHeight;',
-'			}',
-'',
-'			function setLogContainerHeight() {',
-'				var windowHeight = getWindowHeight();',
-'				$("body").style.height = getWindowHeight() + "px";',
-'				getLogContainer().style.height = "" +',
-'					(windowHeight - getToolBarsHeight()) + "px";',
-'			}',
-'			window.onresize = setLogContainerHeight;',
-'',
-'			if (!Array.prototype.push) {',
-'				Array.prototype.push = function() {',
-'			        for (var i = 0; i < arguments.length; i++){',
-'			            this[this.length] = arguments[i];',
-'			        }',
-'			        return this.length;',
-'				};',
-'			}',
-'',
-'			if (!Array.prototype.pop) {',
-'				Array.prototype.pop = function() {',
-'					if (this.length > 0) {',
-'						var val = this[this.length - 1];',
-'						this.length = this.length - 1;',
-'						return val;',
-'					}',
-'				};',
-'			}',
-'',
-'			if (!Array.prototype.shift) {',
-'				Array.prototype.shift = function() {',
-'					if (this.length > 0) {',
-'						var firstItem = this[0];',
-'						for (var i = 0; i < this.length - 1; i++) {',
-'							this[i] = this[i + 1];',
-'						}',
-'						this.length = this.length - 1;',
-'						return firstItem;',
-'					}',
-'				};',
-'			}',
-'',
-'			function array_contains(arr, val) {',
-'				for (var i = 0; i < arr.length; i++) {',
-'					if (arr[i] == val) {',
-'						return true;',
-'					}',
-'				}',
-'				return false;',
-'			}',
-'			//]]>',
-'		</script>',
-'		<style type="text/css">',
-'			body {',
-'				background-color: white;',
-'				color: black;',
-'				padding: 0px;',
-'				margin: 0px;',
-'				font-family: tahoma, verdana, arial, helvetica, sans-serif;',
-'				overflow: hidden;',
-'			}',
-'',
-'			div#switchesContainer input {',
-'				margin-bottom: 0px;',
-'			}',
-'',
-'			div#switches div.toolbar {',
-'				border-top: solid #ffffff 1px;',
-'				border-bottom: solid #aca899 1px;',
-'				background-color: #f1efe7;',
-'				padding: 3px 5px;',
-'				font-size: 68.75%;',
-'			}',
-'',
-'			div#switches div.toolbar, div#search input {',
-'				font-family: tahoma, verdana, arial, helvetica, sans-serif;',
-'			}',
-'',
-'			div#switches input.button {',
-'				padding: 0px 5px;',
-'				font-size: 100%;',
-'			}',
-'',
-'			div#switches input#clearButton {',
-'				margin-left: 20px;',
-'			}',
-'',
-'			div#levels label {',
-'				font-weight: bold;',
-'			}',
-'',
-'			div#levels label, div#options label {',
-'				margin-right: 5px;',
-'			}',
-'',
-'			div#levels label#wrapLabel {',
-'				font-weight: normal;',
-'			}',
-'',
-'			div#search {',
-'				padding: 5px 0px;',
-'			}',
-'',
-'			div#search label {',
-'				margin-right: 10px;',
-'			}',
-'',
-'			div#search label.searchboxlabel {',
-'				margin-right: 0px;',
-'			}',
-'',
-'			div#search input {',
-'				font-size: 100%;',
-'			}',
-'',
-'			div#search input.validregex {',
-'				color: green;',
-'			}',
-'',
-'			div#search input.invalidregex {',
-'				color: red;',
-'			}',
-'',
-'			div#search input.nomatches {',
-'				color: white;',
-'				background-color: #ff6666;',
-'			}',
-'',
-'			div#search input.nomatches {',
-'				color: white;',
-'				background-color: #ff6666;',
-'			}',
-'',
-'			*.greyedout {',
-'				color: gray;',
-'			}',
-'',
-'			*.greyedout *.alwaysenabled {',
-'				color: black;',
-'			}',
-'',
-'			div#log {',
-'				font-family: Courier New, Courier;',
-'				font-size: 75%;',
-'				width: 100%;',
-'				overflow: auto;',
-'			}',
-'',
-'			*.logentry {',
-'				overflow: visible;',
-'				display: none;',
-'				white-space: pre;',
-'			}',
-'',
-'			*.logentry pre.unwrapped {',
-'				display: inline;',
-'			}',
-'',
-'			*.logentry span.wrapped {',
-'				display: none;',
-'			}',
-'',
-'			body.searching *.logentry span.currentmatch {',
-'				color: white !important;',
-'				background-color: green !important;',
-'			}',
-'',
-'			body.searching div.searchhighlight *.logentry span.searchterm {',
-'				/*font-weight: bold;*/',
-'				color: black;',
-'				background-color: yellow;',
-'			}',
-'',
-'			div.wrap *.logentry {',
-'				white-space: normal !important;',
-'				border-width: 0px 0px 1px 0px;',
-'				border-color: #dddddd;',
-'				border-style: dotted;',
-'			}',
-'',
-'			div.wrap *.logentry pre.unwrapped {',
-'				display: none;',
-'			}',
-'',
-'			div.wrap *.logentry span.wrapped {',
-'				display: inline;',
-'			}',
-'',
-'			div.searchfilter *.searchnonmatch {',
-'				display: none !important;',
-'			}',
-'',
-'			div#log *.TRACE, label#label_TRACE {',
-'				color: #666666;',
-'			}',
-'',
-'			div#log *.DEBUG, label#label_DEBUG {',
-'				color: green;',
-'			}',
-'',
-'			div#log *.INFO, label#label_INFO {',
-'				color: #000099;',
-'			}',
-'',
-'			div#log *.WARN, label#label_WARN {',
-'				color: #999900;',
-'			}',
-'',
-'			div#log *.ERROR, label#label_ERROR {',
-'				color: red;',
-'			}',
-'',
-'			div#log *.FATAL, label#label_FATAL {',
-'				color: #660066;',
-'			}',
-'',
-'			div.TRACE#log *.TRACE,',
-'			div.DEBUG#log *.DEBUG,',
-'			div.INFO#log *.INFO,',
-'			div.WARN#log *.WARN,',
-'			div.ERROR#log *.ERROR,',
-'			div.FATAL#log *.FATAL {',
-'				display: block;',
-'			}',
-'',
-'			div#log div.separator {',
-'				background-color: #cccccc;',
-'				margin: 5px 0px;',
-'				line-height: 1px;',
-'			}',
-'		</style>',
-'	</head>',
-'',
-'	<body id="body">',
-'		<div id="switchesContainer">',
-'			<div id="switches">',
-'				<div id="levels" class="toolbar">',
-'					Filters:',
-'					<input type="checkbox" id="switch_TRACE" onclick="applyFilters(); checkAllLevels()" checked="checked" title="Show/hide trace messages" /><label for="switch_TRACE" id="label_TRACE">trace</label>',
-'					<input type="checkbox" id="switch_DEBUG" onclick="applyFilters(); checkAllLevels()" checked="checked" title="Show/hide debug messages" /><label for="switch_DEBUG" id="label_DEBUG">debug</label>',
-'					<input type="checkbox" id="switch_INFO" onclick="applyFilters(); checkAllLevels()" checked="checked" title="Show/hide info messages" /><label for="switch_INFO" id="label_INFO">info</label>',
-'					<input type="checkbox" id="switch_WARN" onclick="applyFilters(); checkAllLevels()" checked="checked" title="Show/hide warn messages" /><label for="switch_WARN" id="label_WARN">warn</label>',
-'					<input type="checkbox" id="switch_ERROR" onclick="applyFilters(); checkAllLevels()" checked="checked" title="Show/hide error messages" /><label for="switch_ERROR" id="label_ERROR">error</label>',
-'					<input type="checkbox" id="switch_FATAL" onclick="applyFilters(); checkAllLevels()" checked="checked" title="Show/hide fatal messages" /><label for="switch_FATAL" id="label_FATAL">fatal</label>',
-'					<input type="checkbox" id="switch_ALL" onclick="toggleAllLevels(); applyFilters()" checked="checked" title="Show/hide all messages" /><label for="switch_ALL" id="label_ALL">all</label>',
-'				</div>',
-'				<div id="search" class="toolbar">',
-'					<label for="searchBox" class="searchboxlabel">Search:</label> <input type="text" id="searchBox" onclick="toggleSearchEnabled(true)" onkeyup="scheduleSearch()" size="20" />',
-'					<input type="button" id="searchReset" disabled="disabled" value="Reset" onclick="clearSearch()" class="button" title="Reset the search" />',
-'					<input type="checkbox" id="searchRegex" onclick="doSearch()" title="If checked, search is treated as a regular expression" /><label for="searchRegex">Regex</label>',
-'					<input type="checkbox" id="searchCaseSensitive" onclick="doSearch()" title="If checked, search is case sensitive" /><label for="searchCaseSensitive">Match case</label>',
-'					<input type="checkbox" id="searchDisable" onclick="toggleSearchEnabled()" title="Enable/disable search" /><label for="searchDisable" class="alwaysenabled">Disable</label>',
-'					<div id="searchNav">',
-'						<input type="button" id="searchNext" disabled="disabled" value="Next" onclick="searchNext()" class="button" title="Go to the next matching log entry" />',
-'						<input type="button" id="searchPrevious" disabled="disabled" value="Previous" onclick="searchPrevious()" class="button" title="Go to the previous matching log entry" />',
-'						<input type="checkbox" id="searchFilter" onclick="toggleSearchFilter()" title="If checked, non-matching log entries are filtered out" /><label for="searchFilter">Filter</label>',
-'						<input type="checkbox" id="searchHighlight" onclick="toggleSearchHighlight()" title="Highlight matched search terms" /><label for="searchHighlight" class="alwaysenabled">Highlight all</label>',
-'					</div>',
-'				</div>',
-'				<div id="options" class="toolbar">',
-'					Options:',
-'					<input type="checkbox" id="enableLogging" onclick="toggleLoggingEnabled()" checked="checked" title="Enable/disable logging" /><label for="enableLogging" id="wrapLabel">Log</label>',
-'					<input type="checkbox" id="wrap" onclick="toggleWrap()" title="Enable / disable word wrap" /><label for="wrap" id="wrapLabel">Wrap</label>',
-'					<input type="checkbox" id="newestAtTop" onclick="toggleNewestAtTop()" title="If checked, causes newest messages to appear at the top" /><label for="newestAtTop" id="newestAtTopLabel">Newest at the top</label>',
-'					<input type="checkbox" id="scrollToLatest" onclick="toggleScrollToLatest()" checked="checked" title="If checked, window automatically scrolls to a new message when it is added" /><label for="scrollToLatest" id="scrollToLatestLabel">Scroll to latest</label>',
-'					<input type="button" id="clearButton" value="Clear" onclick="clearLog()" class="button" title="Clear all log messages"  />',
-'					<input type="button" id="closeButton" value="Close" onclick="window.close()" class="button" title="Close the window" />',
-'				</div>',
-'			</div>',
-'',
-'		</div>',
-'		<div id="log" class="TRACE DEBUG INFO WARN ERROR FATAL"></div>',
-'	</body>',
-'</html>'/* build:console_end */
+/* build:console_start *//* build:console_end */
 ];
 		};
 
@@ -2482,7 +1566,7 @@ var SimpleDateFormat;
 
 			this.isNewestMessageAtTop = function() { return newestMessageAtTop; };
 			this.setNewestMessageAtTop = function(newestMessageAtTopParam) {
-				newestMessageAtTop = Boolean(newestMessageAtTopParam);
+				newestMessageAtTop = bool(newestMessageAtTopParam);
 				if (consoleWindowLoaded && isSupported) {
 					getConsoleWindow().setNewestAtTop(newestMessageAtTop);
 				}
@@ -2490,7 +1574,7 @@ var SimpleDateFormat;
 
 			this.isScrollToLatestMessage = function() { return scrollToLatestMessage; };
 			this.setScrollToLatestMessage = function(scrollToLatestMessageParam) {
-				scrollToLatestMessage = Boolean(scrollToLatestMessageParam);
+				scrollToLatestMessage = bool(scrollToLatestMessageParam);
 				if (consoleWindowLoaded && isSupported) {
 					getConsoleWindow().setScrollToLatest(scrollToLatestMessage);
 				}
@@ -2597,7 +1681,7 @@ var SimpleDateFormat;
 				this.isInitiallyMinimized = function() { return initiallyMinimized; };
 				this.setInitiallyMinimized = function(initiallyMinimizedParam) {
 					if (checkCanConfigure("initiallyMinimized")) {
-						initiallyMinimized = Boolean(initiallyMinimizedParam);
+						initiallyMinimized = bool(initiallyMinimizedParam);
 					}
 				};
 
@@ -2648,7 +1732,7 @@ var SimpleDateFormat;
 
 					function writeToDocument() {
 						try {
-							var windowTest = function(win) { return Boolean(win.loaded); };
+							var windowTest = function(win) { return bool(win.loaded); };
 							writeHtml(getConsoleWindow().document);
 							if (windowTest(getConsoleWindow())) {
 								finalInit();
@@ -2679,7 +1763,7 @@ var SimpleDateFormat;
 					consoleClosed = false;
 
 					// Write the console HTML to the iframe
-					var iframeDocumentExistsTest = function(win) { return Boolean(win) && Boolean(win.document); };
+					var iframeDocumentExistsTest = function(win) { return bool(win) && bool(win.document); };
 					if (iframeDocumentExistsTest(getConsoleWindow())) {
 						writeToDocument();
 					} else {
@@ -2718,27 +1802,27 @@ var SimpleDateFormat;
 				this.isUseOldPopUp = function() { return useOldPopUp; };
 				this.setUseOldPopUp = function(useOldPopUpParam) {
 					if (checkCanConfigure("useOldPopUp")) {
-						useOldPopUp = Boolean(useOldPopUpParam);
+						useOldPopUp = bool(useOldPopUpParam);
 					}
 				};
 
 				this.isComplainAboutPopUpBlocking = function() { return complainAboutPopUpBlocking; };
 				this.setComplainAboutPopUpBlocking = function(complainAboutPopUpBlockingParam) {
 					if (checkCanConfigure("complainAboutPopUpBlocking")) {
-						complainAboutPopUpBlocking = Boolean(complainAboutPopUpBlockingParam);
+						complainAboutPopUpBlocking = bool(complainAboutPopUpBlockingParam);
 					}
 				};
 
 				this.isFocusPopUp = function() { return focusConsoleWindow; };
 				this.setFocusPopUp = function(focusPopUpParam) {
 					// This property can be safely altered after logging has started
-					focusConsoleWindow = Boolean(focusPopUpParam);
+					focusConsoleWindow = bool(focusPopUpParam);
 				};
 
 				this.isReopenWhenClosed = function() { return reopenWhenClosed; };
 				this.setReopenWhenClosed = function(reopenWhenClosedParam) {
 					// This property can be safely altered after logging has started
-					reopenWhenClosed = Boolean(reopenWhenClosedParam);
+					reopenWhenClosed = bool(reopenWhenClosedParam);
 				};
 
 				this.close = function() {
@@ -2780,7 +1864,7 @@ var SimpleDateFormat;
 							} else {
 								writeHtml(popUp.document);
 								// Check if the pop-up window object is available
-								var popUpLoadedTest = function(win) { return Boolean(win) && win.loaded; };
+								var popUpLoadedTest = function(win) { return bool(win) && win.loaded; };
 								if (popUp.loaded) {
 									finalInit();
 								} else {

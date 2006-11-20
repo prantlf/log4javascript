@@ -4,8 +4,8 @@
   <DoManageFiles>True</DoManageFiles>
   <FilesToCompress>
     <Item>
-      <InputFolder>F:\websites\timdown.co.uk\version_current\log4javascript\log4javascript-1.3\working\</InputFolder>
-      <OutputFolder>F:\websites\timdown.co.uk\version_current\log4javascript\log4javascript-1.3\working\</OutputFolder>
+      <InputFolder>F:\websites\timdown.co.uk\version_current\log4javascript\output\working\</InputFolder>
+      <OutputFolder>F:\websites\timdown.co.uk\version_current\log4javascript\output\working\</OutputFolder>
       <Mask>console.js</Mask>
       <DoSubDirs>False</DoSubDirs>
       <Prefix></Prefix>

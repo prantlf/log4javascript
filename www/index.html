@@ -1,106 +1,139 @@
-<html>
-<head>
- <style type="text/css">
-/* <![CDATA[ */ 
-@import "http://www.tigris.org/branding/css/tigris.css"; 
-@import "http://www.tigris.org/branding/css/inst.css"; 
-/*  ]]> */
- </style>
-  <link rel="stylesheet" type="text/css" href="http://www.tigris.org/branding/css/print.css" media="print" />
-<script src="http://www.tigris.org/branding/scripts/tigris.js" type="text/javascript">
-</script>
- <title>Project Overview</title>
-</head>
-<body>
+<?xml version="1.0"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+	<head>
+		<title>log4javascript - a JavaScript logging framework</title>
+		<meta http-equiv="content-type" content="text/html; charset=iso-8859-1" />
+		<meta name="author" content="Tim Down - tim@timdown.co.uk" />
+		<meta name="keywords" content="log4javascript, logging, JavaScript, DHTML, Ajax, log4j, debug, framework, tool, library" />
+		<meta name="description" content="log4javascript, a logging framework for JavaScript based on log4j" />
+		<meta name="robots" content="all" />
+		<link rel="stylesheet" type="text/css" media="screen,print" href="log4javascript-current/main.css" title="Default" />
+		<link rel="stylesheet" type="text/css" media="screen,print" href="index.css" title="Index page only" />
+	</head>
+	<body>
+		<div id="container" class="nonav">
+			<div id="header">
+				<h1><a href="index.html">log4javascript</a></h1>
+			</div>
+			<div id="content">
+				<div id="nav">
+					<a class="navitem" href="http://sourceforge.net/projects/log4javascript" target="_blank" title="Download (opens in new window)">download</a>
+					| <a class="navitem" href="log4javascript-current/docs/index.html">docs</a>
+					| <a class="navitem" href="log4javascript-current/docs/quickstart.html">quick start</a>
+					| <a class="navitem" href="log4javascript-current/docs/manual.html">manual</a>
+					| <a class="navitem" href="log4javascript-current/demos/basic.html">basic demo</a>
+					| <a class="navitem" href="log4javascript-current/demos/full.html">full demo</a>
+					| <a class="navitem" href="http://www.timdown.co.uk" target="_blank">timdown.co.uk</a>
+				</div>
+				<h1>log4javascript</h1>
+				<p>
+					log4javascript is a JavaScript logging framework based on the Java
+					logging framework <a href="http://logging.apache.org/log4j/docs/index.html"
+					title="log4j home page (opens in new window)" target="_blank">log4j</a>.
+				</p>
+				<h2>Download</h2>
+				<p>
+					Current version: <strong>1.3.1</strong> (released 18/11/2006)
+					[<a href="log4javascript-1.3.1/changelog.txt">change log</a>]
+				</p>
+				<p>
+					To download log4javascript, please visit <a href="http://sourceforge.net/projects/log4javascript" target="_blank">log4javascript's
+					SourceForge download page</a>.
+				</p>
+				<h2>log4javascript 1.3.1 released</h2>
+				<p>
+					log4javascript 1.3.1 is now available. This is a minor bugfix
+					release which addresses issues with the interaction of the search
+					and severity filters in the console window used by PopUpAppender
+					and InPageAppender.
+				</p>
+				<p>
+					Enhancements in 1.3 include:
+				</p>
+				<ul>
+					<li>
+						Fully tested and supported in IE 7;
+					</li>
+					<li>
+						<a href="http://www.joehewitt.com/software/firebug/" title="Firebug home page (opens in new window)"
+							target="_blank">Firebug</a> logging support;</li>
+					<li>
+						Facility to log JavaScript objects;
+					</li>
+					<li>
+						Compressed (30% smaller) version of main file included in distribution;
+					</li>
+					<li>
+						Drop-in stub version included, allowing you to replace log4javascript.js
+						with a lightweight JavaScript file in production environments without
+						having to modify any code;
+					</li>
+					<li>
+						Pop-up / in-page console search now allows optional filtering to show only
+						matching log entries, highlighting of all search matches and navigation
+						buttons to cycle through the search results;
+					</li>
+					<li>
+						Pop-up console can now optionally open a new window automatically
+						at the time of the next log entry after the original window was closed;
+					</li>
+					<li>
+						Pop-up / in-page console can optionally have a limit on the number of
+						messages that are displayed and stored, thereby preventing potential
+						sluggishness and excessive memory use. When this limit is reached,
+						each new log entry will cause the oldest entry to be discarded;
+					</li>
+					<li>
+						Exceptions (and optionally stack traces in Firefox) passed into logging
+						methods are now displayed;
+					</li>
+					<li>
+						Improved demos and examples.
+					</li>
+				</ul>
+				<p>
+					See the <a href="log4javascript-current/changelog.txt">change log</a> for
+					full details.
+				</p>
+				<h2>Demos</h2>
+				<p>
+					<ul>
+						<li><a href="log4javascript-current/demos/basic.html">Basic demo</a></li>
+						<li><a href="log4javascript-current/demos/full.html">Full demo</a></li>
+					</ul>
+				</p>
 
-<p>This is the initial web content for your project.  Please customize
-this to fit your project.  You don't need to answer all these questions
-or follow this exact format, but we do like to see this kind of
-information before we approve projects for public viewing.
-</p>
+				<h2>Documentation</h2>
+				<p>
+					<a href="log4javascript-current/docs/index.html">Full documentation</a>
+				</p>
 
-<p>Until your project is approved, only you can view it and work on
-it.
-</p>
-
-<ul>
-<li>This index.html will be used if and only if you have the "Use
-Project Home Page" option checked on the "Administer Project" page
-(click the "Admin" tab).</li>
-
-<li>To edit this file, check out your project via CVS and edit www/index.html.
-
-<li>You can 'cvs add' and commit other files under the project's "www"
-directory and they will published to your project web site.</li>
-
-<li>Also, consider starting a thread in the "dev" mailing list to get
-these discussion started.  A good one is an "introduction" thread where
-people post messages about themselves and their interest in the
-project.</li>
-
-<li>You can add a "Highlights:" line to the top of all web pages by adding a file www/project_highlights.html </li>
-</ul>
-
-
-<h3>Mission</h3>
-
-<p>What is the goal of this project?
-</p>
-
-<p>What is the scope of this project?
-</p>
-
-<p>For example:</p>
-
-<ul>
-<li>Develop just enough functionality to scratch a particular itch</li>
-<li>Build a tool just like XYZ, but less broken</li>
-<li>Build the best XYZ-tool ever!</li>
-</ul>
-
-
-<p>What are high-level features you are sure to build?
-</p>
-<ul>
-
-<li>What would you write on a billboard about your project? Users
-might only look for a few seconds.</li>
-
-<li>Use the issue tracker to track features and enhancement
-requests. It is not just for bugs, pre-populate it with feature
-descriptions so that potential contributors know what you would like them
-to work on.</li>
-</ul>
-
-<p>What are the high-level assumptions or ground rules for the project?
-</p>
-
-<p>For example:
-</p>
-
-<ul>
-<li> we will use programming language X on operating system Y for now.
-
-<li>We will, or will not, consider certain functional areas like
-internationalization, high security, concurrency, etc.  The list of
-functional areas will depend on what you are trying to do.
-
-<li>Try to keep this part short.
-</ul>
-
-
-<h3>Related resources</h3>
-
-<ul>
-<li>Link to other stuff that you know about.  It will help you
-research requirements and provide a useful resource to potential
-contributors.</li>
-
-<li>Why reinvent the wheel? What is better about this wheel?  Is there
-any existing project that you can partner with or reuse?</li>
-
-<li>Where would you go to try to find potential contibutors?</li>
-</ul>
-
-</body>
+				<h2>Licence</h2>
+				<p>
+					log4javascript is licenced under the <a href="http://www.apache.org/licenses/LICENSE-2.0.html"
+						title="Apache License, Version 2.0 (opens in new window)" target="_blank">Apache License,
+					Version 2.0</a>.
+				</p>
+<!--
+				<h2>Links</h2>
+				<p>
+					<a href="links.html">Links to log4javascript references</a>
+				</p>
+-->
+			</div>
+			<div id="footer">
+				<span class="externallinkinfo">
+					<strong>NB.</strong> All external links open in a new window.
+				</span>
+				Written by Tim Down. <a href="mailto:tim@timdown.co.uk">tim@timdown.co.uk</a>
+				<br />
+				log4javascript is distributed under the <a href="http://www.apache.org/licenses/LICENSE-2.0.html"
+					title="Apache License, Version 2.0 (opens in new window)" target="_blank">Apache License,
+					Version 2.0</a>
+<!--build:sflogo-->	
+			</div>
+		</div>
+<!--build:googleanalytics-->	
+	</body>
 </html>

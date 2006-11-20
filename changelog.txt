@@ -1,6 +1,10 @@
 log4javascript change log
 -------------------------
 
+1.3.1 (18/11/2006)
+- Fix to interaction of search and severity filters in console window used by
+  PopUpAppender and InPageAppender
+
 1.3 (19/10/2006)
 - Fully tested and supported in IE 7 Beta 3
 - Added support for FireBug logging levels in BrowserConsoleAppender

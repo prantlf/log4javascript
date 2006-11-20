@@ -1,24 +1,37 @@
-<project name="log4javascript" default="build" basedir=".">
+<project name="log4javascript" default="full_build" basedir=".">
 	<property name="container" value=".."/>
 	<property name="base" value="."/>
+	<property name="output" value="../output"/>
 	<property name="src" value="src"/>
-	<property name="dist" value="${base}/dist"/>
-	<property name="distfile" value="log4javascript-1.3"/>
-	<property name="thisversion.folder" value="log4javascript-1.3"/>
+	<property name="dist" value="${output}/dist"/>
+	
+	<loadfile property="version" srcfile="${base}/version.txt"/>
+	
+	<property name="distfile" value="log4javascript-${version}"/>
+	<property name="thisversion.folder" value="log4javascript-${version}"/>
 	<property name="currentversion.folder" value="log4javascript-current"/>
-	<property name="dist.folder" value="${dist}/${thisversion.folder}"/>
+	<property name="dist.folder" value="${output}/${thisversion.folder}"/>
 
-	<property name="sourceforge.folder" value="${base}/sourceforge"/>
+	<property name="local.folder" value="../log4javascript-current"/>
+	<property name="local.www.folder" value=".."/>
+
+	<property name="cvs.folder" value="../sourceforge_cvs"/>
+
+	<property name="sourceforge.folder" value="${output}/sourceforge"/>
 	<property name="sourceforge.thisversion.folder" value="${sourceforge.folder}/${thisversion.folder}"/>
 	<property name="sourceforge.currentversion.folder" value="${sourceforge.folder}/${currentversion.folder}"/>
 
-	<property name="timdown.co.uk.folder" value="${base}/timdown.co.uk"/>
+	<property name="timdown.co.uk.folder" value="${output}/timdown.co.uk"/>
 	<property name="timdown.co.uk.thisversion.folder" value="${timdown.co.uk.folder}/${thisversion.folder}"/>
 	<property name="timdown.co.uk.currentversion.folder" value="${timdown.co.uk.folder}/${currentversion.folder}"/>
 
+	<property name="jsan.folder" value="${output}/jsan"/>
+	<property name="jsan.lib.folder" value="${jsan.folder}/lib"/>
+	<property name="jsan.distfile" value="${jsan.folder}/${distfile}"/>
+
 	<property name="googleanalytics.folder" value="${base}/googleanalytics"/>
-	<property name="build" value="${base}/build"/>
-	<property name="working" value="working"/>
+	<property name="build" value="${output}/build"/>
+	<property name="working" value="${output}/working"/>
 
 	<target name="createworking">
 		<mkdir dir="${working}"/>
@@ -46,6 +59,7 @@
 
 		<!-- Remove the script tags that refer to files for the standalone console -->
 		<replaceregexp file="${consolefile}" match="&lt;!--build:remove_start--&gt;.*?&lt;!--build:remove_end--&gt;" flags="s" replace=""/>
+		<replaceregexp file="${consolefile}" match="\t" flags="sg" replace="  "/>
 		
 		<!-- Create the uncompressed build of the main file, log4javascript.js -->
 		<copy file="${consolefile}" tofile="${consolefile.uncompressed}" overwrite="true"/>
@@ -55,6 +69,7 @@
 		<replaceregexp file="${consolefile.uncompressed}" match="\\r" flags="sg" replace="\\\\\\\\r"/>
 		<replaceregexp file="${consolefile.uncompressed}" match="\\n" flags="sg" replace="\\\\\\\\n"/>
 		<replaceregexp file="${consolefile.uncompressed}" match="\\&quot;" flags="sg" replace="\\\\\\\\\\\\&quot;"/>
+		<!--<replaceregexp file="${consolefile.uncompressed}" match="\\t" flags="sg" replace="    "/>-->
 		<replaceregexp file="${consolefile.uncompressed}" match=",$" replace=""/>
 		<replace file="${consolefile.uncompressed}" token="/* build:js_start */" value=""/>
 		<replace file="${consolefile.uncompressed}" token="/* build:js_end */" value=""/>
@@ -64,6 +79,7 @@
 		<copy file="${src}/log4javascript.js" tofile="${mainfile}" overwrite="true"/>
 		<replaceregexp file="${mainfile}" match="/\* build:console_start \*/.*?/\* build:console_end \*/" flags="sg" replace="/* build:console */"/>
 		<replace file="${mainfile}" token="/* build:console */" value="${consolefile.uncompressed.content}"/>
+		<replace file="${mainfile}" token="%%build:version%%" value="${version}"/>
 		<copy file="${mainfile}" tofile="${mainfile.build}" overwrite="true"/>
 
 		<!-- Extract JavaScript from console file and write it to a file -->
@@ -121,6 +137,7 @@
 		<loadfile property="consolefile.content" srcfile="${consolefile}"/>
 		<copy file="${src}/log4javascript.js" tofile="${mainfile.compressed}" overwrite="true"/>
 		<replaceregexp file="${mainfile.compressed}" match="/\* build:console_start \*/.*?/\* build:console_end \*/" flags="sg" replace="/* build:console */"/>
+		<replace file="${mainfile.compressed}" token="%%build:version%%" value="${version}"/>
 		<replace file="${mainfile.compressed}" token="/* build:console */" value="${consolefile.content}"/>
 
 		<!-- Compress the main JavaScript -->
@@ -147,10 +164,6 @@
 	</target>
 
 	<target name="build" depends="build.main,cleanup" description="Builds the JavaScript files from the source components"/>
-	
-	<target name="create_dist_folder">
-		<mkdir dir="${dist.folder}"/>
-	</target>
 
 	<patternset id="supporting_files">
 		<include name="docs/index.html"/>
@@ -173,7 +186,11 @@
 	<fileset id="built_js_files" dir="${build}">
 		<include name="*"/>
 	</fileset>
-
+	
+	<target name="create_dist_folder">
+		<mkdir dir="${dist}"/>
+		<mkdir dir="${dist.folder}"/>
+	</target>
 
     <target name="gather_dist_files" depends="create_dist_folder" description="Copies all the files ready to be zipped">
     	<!-- Copy supporting files -->
@@ -207,12 +224,14 @@
 		</copy>
     </target>
 
+	<!-- Creates zip version of the distribution -->
 	<target name="create_zip" depends="gather_dist_files">
 		<zip destfile="${dist}/${distfile}.zip">
 			<zipfileset dir="${dist.folder}" prefix="${distfile}/"/>
 		</zip>
     </target>
 
+	<!-- Creates tarball version of the distribution -->
 	<target name="create_targz" depends="gather_dist_files">
 		<tar tarfile="${dist}/${distfile}.tar">
 			<tarfileset dir="${dist.folder}" prefix="${distfile}/"/>
@@ -221,15 +240,144 @@
 		<delete file="${dist}/${distfile}.tar"/>
     </target>
 
+	<!-- Cleans up distribution working directory -->
 	<target name="clean_dist" depends="create_zip, create_targz">
 		<delete dir="${dist.folder}"/>
 	</target>
 	
+	<!-- Creates directory for local site -->
+	<target name="create_local_folder">
+		<delete dir="${local.folder}" quiet="true"/>
+		<mkdir dir="${local.folder}"/>
+	</target>
+
+	<!-- Update CVS files -->
+	<target name="update_cvs_checkout" description="Copies Subversion checkout files to CVS">
+		<copy todir="${cvs.folder}" overwrite="true">
+            <fileset dir="${base}">
+            	<exclude name="**/svn"/>
+            </fileset>
+		</copy>
+	</target>
+
+	<!-- Builds local site -->
+	<target name="build_for_local" depends="create_local_folder" description="Creates copy of files for localhost">
+
+    	<!-- Copy supporting files -->
+		<copy todir="${local.folder}">
+            <fileset dir="${base}">
+                <patternset refid="supporting_files" />
+            </fileset>
+		</copy>
+		<copy todir="${local.www.folder}">
+            <fileset dir="${base}/www">
+                <patternset refid="index_files" />
+            </fileset>
+		</copy>
+
+		<!-- Delete the non-Ajax version of the full demo -->
+		<delete file="${local.folder}/demos/full_noajax.html" />
+
+		<!-- Replace the Google analytics tag with nothing -->
+		<replaceregexp match="&lt;!--build:googleanalytics--&gt;" flags="sg" replace="">
+            <fileset dir="${local.folder}">
+                <patternset refid="supporting_files" />
+            </fileset>
+            <fileset dir="${local.www.folder}">
+                <patternset refid="index_files" />
+            </fileset>
+		</replaceregexp>
+
+		<!-- Replace the Sourceforge logo tag with nothing -->
+		<replaceregexp match="&lt;!--build:sflogo--&gt;" flags="sg" replace="">
+            <fileset dir="${local.folder}">
+                <patternset refid="supporting_files" />
+            </fileset>
+            <fileset dir="${local.www.folder}">
+                <patternset refid="index_files" />
+            </fileset>
+		</replaceregexp>
+		
+		<!-- Copy in the JS files -->
+		<copy todir="${local.folder}">
+            <fileset refid="built_js_files"/>
+		</copy>
+    </target>
+
+	<!-- Creates directory for JSAN distribution-->
+	<target name="create_jsan_folder">
+		<delete dir="${jsan.folder}" quiet="true"/>
+		<mkdir dir="${jsan.folder}"/>
+		<mkdir dir="${jsan.lib.folder}"/>
+	</target>
+
+	<!-- Builds JSAN distribution -->
+	<target name="gather_jsan_files" depends="create_jsan_folder" description="Creates JSAN distribution">
+    	<!-- Copy JSAN-specific files -->
+		<copy todir="${jsan.folder}">
+            <fileset dir="${base}/jsan">
+                <patternset>
+					<include name="*"/>
+                </patternset>
+            </fileset>
+		</copy>
+
+    	<!-- Copy supporting files -->
+		<copy todir="${jsan.folder}">
+            <fileset dir="${base}">
+                <patternset refid="supporting_files" />
+            </fileset>
+		</copy>
+
+		<!-- Delete the Ajax version of the full demo and replace it with the non-Ajax version -->
+		<delete file="${jsan.folder}/demos/full.html" />
+		<move file="${jsan.folder}/demos/full_noajax.html" tofile="${jsan.folder}/demos/full.html"/>
+
+		<!-- Replace the Google analytics tag with nothing -->
+		<replaceregexp match="&lt;!--build:googleanalytics--&gt;" flags="sg" replace="">
+            <fileset dir="${jsan.folder}">
+                <patternset refid="supporting_files" />
+            </fileset>
+		</replaceregexp>
+
+		<!-- Replace the Sourceforge logo tag with nothing -->
+		<replaceregexp match="&lt;!--build:sflogo--&gt;" flags="sg" replace="">
+            <fileset dir="${jsan.folder}">
+                <patternset refid="supporting_files" />
+            </fileset>
+		</replaceregexp>
+
+		<!-- Change paths to the main .js file -->
+		<replaceregexp match="../log4javascript.js" flags="sg" replace="../lib/log4javascript.js">
+            <fileset dir="${jsan.folder}">
+                <patternset refid="supporting_files" />
+            </fileset>
+		</replaceregexp>
+
+		<!-- Copy in the JS files -->
+		<copy todir="${jsan.lib.folder}">
+            <fileset refid="built_js_files"/>
+		</copy>
+	</target>
+	
+	<!-- Creates tarball version of the JSAN distribution -->
+	<target name="create_jsan_targz" depends="gather_jsan_files">
+		<tar tarfile="${jsan.distfile}.tar">
+			<tarfileset dir="${jsan.folder}" prefix="${distfile}/"/>
+		</tar>
+		<gzip zipfile="${jsan.distfile}.tar.gz" src="${jsan.distfile}.tar"/>
+		<delete file="${jsan.distfile}.tar"/>
+    </target>
+    
+    <target name="build_for_jsan" depends="create_jsan_targz" />
+
+	<!-- Creates directory for Sourceforge site -->
 	<target name="create_sourceforge_folder">
 		<delete dir="${sourceforge.folder}" quiet="true"/>
 		<mkdir dir="${sourceforge.folder}"/>
 	</target>
 
+	<!-- Builds Sourceforge site -->
 	<target name="build_for_sourceforge" depends="create_sourceforge_folder" description="Creates copy of files for Sourceforge">
 
     	<!-- Copy supporting files -->
@@ -239,7 +387,7 @@
             </fileset>
 		</copy>
 		<copy todir="${sourceforge.folder}">
-            <fileset dir="${container}">
+            <fileset dir="${base}/www">
                 <patternset refid="index_files" />
             </fileset>
 		</copy>
@@ -281,11 +429,13 @@
 		</copy>
     </target>
 
+	<!-- Creates directory for timdown.co.uk site -->
 	<target name="create_timdown.co.uk_folder">
 		<delete dir="${timdown.co.uk.folder}" quiet="true"/>
 		<mkdir dir="${timdown.co.uk.folder}"/>
 	</target>
 
+	<!-- Builds timdown.co.uk site -->
 	<target name="build_for_timdown.co.uk" depends="create_timdown.co.uk_folder" description="Creates copy of files for timdown.co.uk">
         <patternset id="timdown.co.uk_supporting_files">
         	<patternset refid="supporting_files"/>
@@ -303,7 +453,7 @@
             </fileset>
 		</copy>
 		<copy todir="${timdown.co.uk.folder}">
-            <fileset dir="${container}">
+            <fileset dir="${base}/www">
                 <patternset refid="index_files" />
             </fileset>
 		</copy>
@@ -343,6 +493,10 @@
 		</copy>
     </target>
 
+	<!-- Builds distribution -->
     <target name="dist" depends="clean_dist" description="Creates the log4javascript distribution"/>
-    <target name="full_build" depends="build, dist, build_for_sourceforge, build_for_timdown.co.uk" description="Full build"/>
+
+	<!-- Builds everything -->
+    <target name="full_build" depends="build, dist, build_for_local, build_for_jsan, build_for_sourceforge, build_for_timdown.co.uk, update_cvs_checkout" description="Full build"/>
+    <target name="all_dists" depends="build_for_local, build_for_jsan, build_for_sourceforge, build_for_timdown.co.uk" description="Create distributions from prebuilt JS files"/>
 </project>
