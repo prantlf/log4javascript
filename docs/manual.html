@@ -1327,6 +1327,41 @@
 								</div>
 							</li>
 							<li class="method">
+								<div class="name">setSendAllOnTimer</div>
+								<div class="methodsignature"><code>void <strong>setSendAllOnTimer</strong>(Boolean <em>sendAllOnTimer</em>)</code></div>
+								<div class="summary">
+									<p>
+										[<em>not available after first message logged</em>]
+									</p>
+									<p>
+										Whether to send all remaining unsent log messages to the server when the timed
+										sending is in effect together with batching. Even an incomplete batch will be sent
+										when the scheduled sending takes place.
+									</p>
+									<p>
+										This options is useful when you want you use batching not to hammer the server
+										too often with log events, but you don't want to leave incomplete batches unsent
+										in the client (web browser) for too long.
+									</p>
+									<p><strong>Notes</strong></p>
+									<ul>
+										<li>
+											<code>sendAllOnTimer</code> only has an effect in conjunction with
+											<code>timed</code> (set by <code>setTimed()</code>. If <code>timed</code>
+											is set to false then <code>sendAllOnTimer</code> has no effect.
+										</li>
+									</ul>
+								</div>
+							</li>
+							<li class="method">
+								<div class="name">isSendAllOnTimer</div>
+								<div class="methodsignature"><code>Boolean <strong>isSendAllOnTimer</strong>()</code></div>
+								<div class="summary">
+									Returns whether all remaining unsent log messages are sent to the server when the timed
+									sending is in effect together with batching. See above for more details.
+								</div>
+							</li>
+							<li class="method">
 								<div class="name">setRequestSuccessCallback</div>
 								<div class="methodsignature"><code>void <strong>setRequestSuccessCallback</strong>(Function <em>requestSuccessCallback</em>)</code></div>
 								<div class="summary">
