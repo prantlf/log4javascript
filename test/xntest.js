@@ -24,8 +24,11 @@ if (!Array.prototype.shift) {
 if (!Function.prototype.apply) {
 	Function.prototype.apply = function(obj, args) {
 		var methodName = "__apply__";
+		if (typeof obj[methodName] != "undefined") {
+			methodName += (String(Math.random())).substr(2);
+		}
 		obj[methodName] = this;
-		
+
 		var argsStrings = new Array(args.length);
 		for (var i = 0; i < args.length; i++) {
 			argsStrings[i] = "args[" + i + "]";
@@ -48,7 +51,7 @@ var xn = new Object();
 	var getListenersPropertyName = function(eventName) {
 		return "__listeners__" + eventName;
 	};
-	
+
 	var addEventListener = function(node, eventName, listener, useCapture) {
 		useCapture = Boolean(useCapture);
 		if (node.addEventListener) {
@@ -78,7 +81,7 @@ var xn = new Object();
 			node[propertyName].push(listener);
 		}
 	};
-	
+
 	// Clones an array
 	var cloneArray = function(arr) {
 		var clonedArray = [];
@@ -87,14 +90,23 @@ var xn = new Object();
 		}
 		return clonedArray;
 	}
-	
+
 	var isFunction = function(f) {
 		if (!f){ return false; }
 		return (f instanceof Function || typeof f == "function");
 	};
-	
+
 	// CSS Utilities
 	
+	function array_contains(arr, val) {
+		for (var i = 0, len = arr.length; i < len; i++) {
+			if (arr[i] === val) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	function addClass(el, cssClass) {
 		if (!hasClass(el, cssClass)) {
 			if (el.className) {
@@ -131,7 +143,7 @@ var xn = new Object();
 		removeClass(el, oldCssClass);
 		addClass(el, newCssClass);
 	}
-	
+
 	function getExceptionStringRep(ex) {
 		if (ex) {
 			var exStr = "Exception: ";
@@ -146,9 +158,6 @@ var xn = new Object();
 			if (ex.fileName) {
 				exStr += " in file " + ex.fileName;
 			}
-			if (ex.stack && xn.test.enableStackTraces) {
-				exStr += "Stack trace:\n" + ex.stack;
-			}
 			return exStr;
 		}
 		return null;
@@ -158,77 +167,163 @@ var xn = new Object();
 	/* ---------------------------------------------------------------------- */
 
 	/* Configure the test logger try to use FireBug */
-	var log;	
+	var log, error;
 	if (window["console"] && typeof console.log == "function") {
 		log = function() {
 			if (xn.test.enableTestDebug) {
 				console.log.apply(console, arguments);
 			}
 		};
+		error = function() {
+			if (xn.test.enableTestDebug) {
+				console.error.apply(console, arguments);
+			}
+		};
 	} else {
 		log = function() {};
 	}
-	
+
 	/* Set up something to report to */
-	
+
 	var initialized = false;
 	var container;
-	var progressBarContainer, progressBar;
+	var progressBarContainer, progressBar, overallSummaryText;
+	var currentTest = null;
 	var suites = [];
+	var totalTestCount = 0;
+	var currentTestIndex = 0;
+	var testFailed = false;
+	var testsPassedCount = 0;
+	var startTime;
+	
+	var log4javascriptEnabled = false;
+	
+	var nextSuiteIndex = 0;
+	
+	function runNextSuite() {
+		if (nextSuiteIndex < suites.length) {
+			suites[nextSuiteIndex++].run();
+		}
+	}
 	
 	var init = function() {
 		if (initialized) { return true; }
+		
+		container = document.createElement("div");
+		
+		// Create the overall progress bar
+		progressBarContainer = container.appendChild(document.createElement("div"));
+		progressBarContainer.className = "xn_test_progressbar_container xn_test_overallprogressbar_container";
+		progressBar = progressBarContainer.appendChild(document.createElement("div"));
+		progressBar.className = "success";
+
+		document.body.appendChild(container);
+
+		var h1 = progressBar.appendChild(document.createElement("h1"));
+		overallSummaryText = h1.appendChild(document.createTextNode(""));
+
 		initialized = true;
+		
+		// Set up logging
+		log4javascriptEnabled = !!log4javascript && xn.test.enable_log4javascript;
+		
+		function TestLogAppender() {}
+		
+		if (log4javascriptEnabled) {
+			TestLogAppender.prototype = new log4javascript.Appender();
+			TestLogAppender.prototype.layout = new log4javascript.PatternLayout("%d{HH:mm:ss,SSS} %-5p %m");
+			TestLogAppender.prototype.append = function(loggingEvent) {
+				var formattedMessage = this.getLayout().format(loggingEvent);
+				if (this.getLayout().ignoresThrowable()) {
+					formattedMessage += loggingEvent.getThrowableStrRep();
+				}
+				currentTest.addLogMessage(formattedMessage);
+			};
+			
+			var appender = new TestLogAppender();
+			appender.setThreshold(log4javascript.Level.ALL);
+			log4javascript.getRootLogger().addAppender(appender);
+			log4javascript.getRootLogger().setLevel(log4javascript.Level.ALL);
+		}
+
+		startTime = new Date();
 
 		// First, build each suite
 		for (var i = 0; i < suites.length; i++) {
 			suites[i].build();
+			totalTestCount += suites[i].tests.length;
 		}
+		
 		// Now run each suite
-		for (i = 0; i < suites.length; i++) {
-			suites[i].run();
-		}
+		runNextSuite();
 	};
+	
+	function updateProgressBar() {
+		progressBar.style.width = "" + parseInt(100 * (currentTestIndex) / totalTestCount) + "%";
+		var s = (totalTestCount === 1) ? "" : "s";
+		var timeTaken = new Date().getTime() - startTime.getTime();
+		overallSummaryText.nodeValue = "" + testsPassedCount + " of " + totalTestCount + " test" + s + " passed in " + timeTaken + "ms";
+	}
 
 	addEventListener(window, "load", init);
 
 	/* ---------------------------------------------------------------------- */
 
 	/* Test Suite */
-	var Suite = function(name, callback) {
+	var Suite = function(name, callback, hideSuccessful) {
 		this.name = name;
 		this.callback = callback;
+		this.hideSuccessful = hideSuccessful;
 		this.tests = [];
 		this.log = log;
+		this.error = error;
+		this.expanded = true;
 		suites.push(this);
 	}
-	
-	Suite.prototype.test = function(name, callback) {
+
+	Suite.prototype.test = function(name, callback, setUp, tearDown) {
 		this.log("adding a test named " + name)
-		var t = new Test(name, callback, this);		
+		var t = new Test(name, callback, this, setUp, tearDown);
 		this.tests.push(t);
 	};
-	
+
 	Suite.prototype.build = function() {
 		// Build the elements used by the suite
+		var suite = this;
+		this.testFailed = false;
 		this.container = document.createElement("div");
 		this.container.className = "xn_test_suite_container";
 
 		var heading = document.createElement("h2");
-		heading.appendChild(document.createTextNode(this.name));
-		this.container.appendChild(heading); 
+		this.expander = document.createElement("span");
+		this.expander.className = "xn_test_expander";
+		this.expander.onclick = function() {
+			if (suite.expanded) {
+				suite.collapse();
+			} else {
+				suite.expand();
+			}
+		};
+		heading.appendChild(this.expander);
+		
+		this.headingTextNode = document.createTextNode(this.name);
+		heading.appendChild(this.headingTextNode);
+		this.container.appendChild(heading);
+
+		this.reportContainer = document.createElement("dl");
+		this.container.appendChild(this.reportContainer);
 
 		this.progressBarContainer = document.createElement("div");
 		this.progressBarContainer.className = "xn_test_progressbar_container";
 		this.progressBar = document.createElement("div");
 		this.progressBar.className = "success";
+		this.progressBar.innerHTML = "&nbsp;";
 		this.progressBarContainer.appendChild(this.progressBar);
-		this.container.appendChild(this.progressBarContainer); 
+		this.reportContainer.appendChild(this.progressBarContainer);
 
-		this.reportContainer = document.createElement("dl");
-		this.container.appendChild(this.reportContainer); 
+		this.expand();
 
-		document.body.appendChild(this.container);
+		container.appendChild(this.container);
 
 		// invoke callback to build the tests
 		this.callback.apply(this, [this]);
@@ -236,18 +331,44 @@ var xn = new Object();
 
 	Suite.prototype.run = function() {
 		this.log("running suite '%s'", this.name)
-		
+		this.startTime = new Date();
+
 		// now run the first test
 		this._currentIndex = 0;
 		this.runNextTest();
 	};
-	
+
 	Suite.prototype.updateProgressBar = function() {
 		// Update progress bar
 		this.progressBar.style.width = "" + parseInt(100 * (this._currentIndex) / this.tests.length) + "%";
 		//log(this._currentIndex + ", " + this.tests.length + ", " + progressBar.style.width + ", " + progressBar.className);
 	};
-	
+
+	Suite.prototype.expand = function() {
+		this.expander.innerHTML = "-";
+		replaceClass(this.reportContainer, "xn_test_expanded", "xn_test_collapsed");
+		this.expanded = true;
+	};
+
+	Suite.prototype.collapse = function() {
+		this.expander.innerHTML = "+";
+		replaceClass(this.reportContainer, "xn_test_collapsed", "xn_test_expanded");
+		this.expanded = false;
+	};
+
+	Suite.prototype.finish = function(timeTaken) {
+		var newClass = this.testFailed ? "xn_test_suite_failure" : "xn_test_suite_success";
+		var oldClass = this.testFailed ? "xn_test_suite_success" : "xn_test_suite_failure";
+		replaceClass(this.container, newClass, oldClass);
+
+		this.headingTextNode.nodeValue += " (" + timeTaken + "ms)";
+
+		if (this.hideSuccessful && !this.testFailed) {
+			this.collapse();
+		}
+		runNextSuite();
+	};
+
 	/**
 	 * Works recursively with external state (the next index)
 	 * so that we can handle async tests differently
@@ -255,37 +376,45 @@ var xn = new Object();
 	Suite.prototype.runNextTest = function() {
 		if (this._currentIndex == this.tests.length) {
 			// finished!
+			var timeTaken = new Date().getTime() - this.startTime.getTime();
+
+			this.finish(timeTaken);
 			return;
 		}
 
-		var self = this;
+		var suite = this;
 		var t = this.tests[this._currentIndex++];
+		currentTestIndex++;
+
+		if (isFunction(suite.setUp)) {
+			suite.setUp.apply(suite, [t]);
+		}
+		if (isFunction(t.setUp)) {
+			t.setUp.apply(t, [t]);
+		}
+
+		t._run();
 		
-		if (isFunction(self.setUp)) {
-			self.setUp.apply(self, [t]);
+		function afterTest() {
+			if (isFunction(suite.tearDown)) {
+				suite.tearDown.apply(suite, [t]);
+			}
+			if (isFunction(t.tearDown)) {
+				t.tearDown.apply(t, [t]);
+			}
+			suite.log("finished test [%s]", t.name);
+			updateProgressBar();
+			suite.updateProgressBar();
+			suite.runNextTest();
 		}
 		
-		t._run();
 		if (t.isAsync) {
-			t.whenFinished = function() {
-				if (isFunction(self.tearDown)) {
-					self.tearDown.apply(self, [t]);
-				}	 
-				self.log("finished test [%s]", t.name);
-				self.updateProgressBar();
-				self.runNextTest();
-			}
+			t.whenFinished = afterTest;
 		} else {
-			// sync, so wrap it up
-			if (isFunction(self.tearDown)) {
-				self.tearDown.apply(self, [t]);
-			}
-			self.log("finished test [%s]", t.name);
-			this.updateProgressBar();
-			self.runNextTest();
+			setTimeout(afterTest, 1);
 		}
 	};
-	
+
 	Suite.prototype.reportSuccess = function() {
 	};
 
@@ -293,76 +422,140 @@ var xn = new Object();
 	/**
 	 * Create a new test
 	 */
-	var Test = function(name, callback, suite) {
+	var Test = function(name, callback, suite, setUp, tearDown) {
 		this.name = name;
 		this.callback = callback;
 		this.suite = suite;
+		this.setUp = setUp;
+		this.tearDown = tearDown;
 		this.log = log;
+		this.error = error;
+		this.assertCount = 0;
+		this.logMessages = [];
+		this.logExpanded = false;
 	};
 
 	/**
 	 * Default success reporter, please override
 	 */
-	Test.prototype.reportSuccess = function(name) {
+	Test.prototype.reportSuccess = function(name, timeTaken) {
 		/* default success reporting handler */
-		var dt = document.createElement("dt");
-		var text = document.createTextNode(this.name);
-		dt.appendChild(text);
+		this.reportHeading = document.createElement("dt");
+		var text = this.name + " passed in " + timeTaken + "ms";
 		
-		dt.className = "success";
+		this.reportHeading.appendChild(document.createTextNode(text));
+
+		this.reportHeading.className = "success";
 		var dd = document.createElement("dd");
 		dd.className = "success";
-		
-		this.suite.reportContainer.appendChild(dt);
-		this.suite.reportContainer.appendChild(dd);			
+
+		this.suite.reportContainer.appendChild(this.reportHeading);
+		this.suite.reportContainer.appendChild(dd);
+		this.createLogReport();
 	};
-	
+
 	/**
 	 * Cause the test to immediately fail
 	 */
-	Test.prototype.reportFailure = function(name, msg) {
+	Test.prototype.reportFailure = function(name, msg, ex) {
+		this.suite.testFailed = true;
 		this.suite.progressBar.className = "failure";
-		var dt = document.createElement("dt");
-		dt.className = "failure";
+		progressBar.className = "failure";
+		this.reportHeading = document.createElement("dt");
+		this.reportHeading.className = "failure";
 		var text = document.createTextNode(this.name);
-		dt.appendChild(text);
+		this.reportHeading.appendChild(text);
 
 		var dd = document.createElement("dd");
 		dd.appendChild(document.createTextNode(msg));
 		dd.className = "failure";
-		
-		this.suite.reportContainer.appendChild(dt);
-		this.suite.reportContainer.appendChild(dd);		
+
+		this.suite.reportContainer.appendChild(this.reportHeading);
+		this.suite.reportContainer.appendChild(dd);
+		if (ex && ex.stack) {
+			var stackTraceContainer = this.suite.reportContainer.appendChild(document.createElement("code"));
+			stackTraceContainer.className = "xn_test_stacktrace";
+			stackTraceContainer.innerHTML = ex.stack.replace(/\r/g, "\n").replace(/\n{1,2}/g, "<br />");
+		}
+		this.createLogReport();
 	};
 	
-	Test.prototype.async = function(timeout) {
+	Test.prototype.createLogReport = function() {
+		if (this.logMessages.length > 0) {
+			this.reportHeading.appendChild(document.createTextNode(" ("));
+			var logToggler = this.reportHeading.appendChild(document.createElement("a"));
+			logToggler.href = "#";
+			logToggler.innerHTML = "show log";
+			var test = this;
+			
+			logToggler.onclick = function() {
+				if (test.logExpanded) {
+					test.hideLogReport();
+					this.innerHTML = "show log";
+					test.logExpanded = false;
+				} else {
+					test.showLogReport();
+					this.innerHTML = "hide log";
+					test.logExpanded = true;
+				}
+				return false;
+			};
+
+			this.reportHeading.appendChild(document.createTextNode(")"));
+			
+			// Create log report
+			this.logReport = this.suite.reportContainer.appendChild(document.createElement("pre"));
+			this.logReport.style.display = "none";
+			this.logReport.className = "xn_test_log_report";
+			var logMessageDiv;
+			for (var i = 0, len = this.logMessages.length; i < len; i++) {
+				logMessageDiv = this.logReport.appendChild(document.createElement("div"));
+				logMessageDiv.appendChild(document.createTextNode(this.logMessages[i]));
+			}
+		}
+	};
+
+	Test.prototype.showLogReport = function() {
+		this.logReport.style.display = "inline-block";
+	};
+		
+	Test.prototype.hideLogReport = function() {
+		this.logReport.style.display = "none";
+	};
+
+	Test.prototype.async = function(timeout, callback) {
 		timeout = timeout || 250;
 		var self = this;
 		var timedOutFunc = function() {
 			if (!self.completed) {
-				self.fail("Asynchronous test timed out");
+				var message = (typeof callback === "undefined") ?
+							"Asynchronous test timed out" : callback(self);
+				self.fail(message);
 			}
 		}
 		var timer = setTimeout(function () { timedOutFunc.apply(self, []); }, timeout)
 		this.isAsync = true;
 	};
-		
+
 	/**
 	 * Run the test
 	 */
 	Test.prototype._run = function() {
 		this.log("starting test [%s]", this.name);
+		this.startTime = new Date();
+		currentTest = this;
 		try {
 			this.callback(this);
 			if (!this.completed && !this.isAsync) {
 				this.succeed();
 			}
 		} catch (e) {
-			this.log("test [%s] threw exception [%s]", name, e);
-			this.fail("Exception thrown: " + e);
+			this.log("test [%s] threw exception [%s]", this.name, e);
+			var s = (this.assertCount === 1) ? "" : "s";
+			this.fail("Exception thrown after " + this.assertCount + " successful assertion" + s + ": " + getExceptionStringRep(e), e);
 		}
 	};
-	
+
 	/**
 	 * Cause the test to immediately succeed
 	 */
@@ -370,25 +563,31 @@ var xn = new Object();
 		if (this.completed) { return false; }
 		// this.log("test [%s] succeeded", this.name);
 		this.completed = true;
-		this.reportSuccess(this.name);
+		var timeTaken = new Date().getTime() - this.startTime.getTime();
+		testsPassedCount++;
+		this.reportSuccess(this.name, timeTaken);
 		if (this.whenFinished) {
 			this.whenFinished();
 		}
 	};
 
-	Test.prototype.fail = function(msg)	{
+	Test.prototype.fail = function(msg, ex)	{
 		if (typeof msg != "string") {
 			msg = getExceptionStringRep(msg);
 		}
 		if (this.completed) { return false; }
 		this.completed = true;
 		// this.log("test [%s] failed", this.name);
-		this.reportFailure(this.name, msg);
+		this.reportFailure(this.name, msg, ex);
 		if (this.whenFinished) {
 			this.whenFinished();
 		}
 	};
 	
+	Test.prototype.addLogMessage = function(logMessage) {
+		this.logMessages.push(logMessage);
+	};
+
 	/* assertions */
 	var displayStringForValue = function(obj) {
 		if (obj === null) {
@@ -398,8 +597,9 @@ var xn = new Object();
 		}
 		return obj.toString();
 	};
-	
+
 	var assert = function(args, expectedArgsCount, testFunction, defaultComment) {
+		this.assertCount++;
 		var comment = defaultComment;
 		var i;
 		var success;
@@ -422,14 +622,14 @@ var xn = new Object();
 			while (regex.test(comment)) {
 				comment = comment.replace(regex, displayStringForValue(values[parseInt(RegExp.$1)]));
 			}
-			this.fail(comment);
+			this.fail("Test failed on assertion " + this.assertCount + ": " + comment);
 		}
 	};
-	
+
 	var testNull = function(values) {
 		return (values[0] === null);
 	};
-	
+
 	Test.prototype.assertNull = function() {
 		assert.apply(this, [arguments, 1, testNull, "Expected to be null but was {0}"]);
 	}
@@ -437,11 +637,11 @@ var xn = new Object();
 	var testNotNull = function(values) {
 		return (values[0] !== null);
 	};
-	
+
 	Test.prototype.assertNotNull = function() {
 		assert.apply(this, [arguments, 1, testNotNull, "Expected not to be null but was {0}"]);
 	}
-			
+
 	var testBoolean = function(values) {
 		return (Boolean(values[0]));
 	};
@@ -449,15 +649,19 @@ var xn = new Object();
 	Test.prototype.assert = function() {
 		assert.apply(this, [arguments, 1, testBoolean, "Expected not to be equivalent to false"]);
 	};
-	
+
 	var testTrue = function(values) {
 		return (values[0] === true);
 	};
 
 	Test.prototype.assertTrue = function() {
 		assert.apply(this, [arguments, 1, testTrue, "Expected to be true but was {0}"]);
-	}
-			
+	};
+
+	Test.prototype.assert = function() {
+		assert.apply(this, [arguments, 1, testTrue, "Expected to be true but was {0}"]);
+	};
+
 	var testFalse = function(values) {
 		return (values[0] === false);
 	};
@@ -466,8 +670,24 @@ var xn = new Object();
 		assert.apply(this, [arguments, 1, testFalse, "Expected to be false but was {0}"]);
 	}
 
-	var testEquals = function(values) {
+	var testEquivalent = function(values) {
 		return (values[0] === values[1]);
+	};
+
+	Test.prototype.assertEquivalent = function() {
+		assert.apply(this, [arguments, 2, testEquivalent, "Expected to be equal but values were {0} and {1}"]);
+	}
+
+	var testNotEquivalent = function(values) {
+		return (values[0] !== values[1]);
+	};
+
+	Test.prototype.assertNotEquivalent = function() {
+		assert.apply(this, [arguments, 2, testNotEquivalent, "Expected to be not equal but values were {0} and {1}"]);
+	}
+
+	var testEquals = function(values) {
+		return (values[0] == values[1]);
 	};
 
 	Test.prototype.assertEquals = function() {
@@ -475,12 +695,31 @@ var xn = new Object();
 	}
 
 	var testNotEquals = function(values) {
-		return (values[0] !== values[1]);
+		return (values[0] != values[1]);
 	};
 
 	Test.prototype.assertNotEquals = function() {
-		assert.apply(this, [arguments, 2, testEquals, "Expected to be not equal but values were {0} and {1}"]);
+		assert.apply(this, [arguments, 2, testNotEquals, "Expected to be not equal but values were {0} and {1}"]);
 	}
+
+	var testRegexMatches = function(values) {
+		return (values[0].test(values[1]));
+	};
+
+	Test.prototype.assertRegexMatches = function() {
+		assert.apply(this, [arguments, 2, testRegexMatches, "Expected regex {0} to match value {1} but it didn't"]);
+	}
+
+	Test.prototype.assertError = function(f, errorType) {
+		try {
+			f();
+			this.fail("Expected error to be thrown");
+		} catch (e) {
+			if (errorType && (!(e instanceof errorType))) {
+				this.fail("Expected error of type " + errorType + " to be thrown but error thrown was " + e);
+			}
+		}
+	};
 
 	/**
 	 * Execute a synchronous test
@@ -490,11 +729,11 @@ var xn = new Object();
 			s.test(name, callback);
 		});
 	}
-	
+
 	/**
 	 * Create a test suite with a given name
 	 */
-	xn.test.suite = function(name, callback) {
-		var s = new Suite(name, callback);
+	xn.test.suite = function(name, callback, hideSuccessful) {
+		var s = new Suite(name, callback, hideSuccessful);
 	}
 })();

@@ -2,19 +2,19 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 	<head>
-		<title>log4javascript basic demo</title>
+		<title>log4javascript in-page console demo</title>
 		<meta http-equiv="content-type" content="text/html; charset=iso-8859-1" />
 		<meta name="author" content="Tim Down - tim@log4javascript.org" />
 		<meta name="description" content="log4javascript, a logging framework for JavaScript based on log4j" />
 		<meta name="robots" content="all" />
 		<link rel="stylesheet" type="text/css" media="screen,print" href="../main.css" title="Default" />
-		<script type="text/javascript" src="../js/log4javascript.js"></script>
+		<script type="text/javascript" src="../js/log4javascript_uncompressed.js"></script>
 		<script type="text/javascript">
 			// <![CDATA[
 			var log = log4javascript.getLogger("main");
-			var appender = new log4javascript.PopUpAppender();
+			var appender = new log4javascript.InPageAppender();
 			log.addAppender(appender);
-			log.debug("This is debugging message from the log4javascript basic demo page");
+			log.debug("This is a debugging message from the log4javascript in-page page");
 
 			var words = ["Watford", "eased", "their", "relegation", "fears", "with", "a", "win",
 				"against", "a", "Charlton", "side", "who", "slipped", "further", "towards", "the",
@@ -57,6 +57,20 @@
 					}
 				}
 			}
+			
+			var consoleVisible = true;
+			
+			function toggleConsole(button) {
+				if (consoleVisible) {
+					appender.hide();
+					button.value = "Show console";
+					consoleVisible = false;
+				} else {
+					appender.show();
+					button.value = "Hide console";
+					consoleVisible = true;
+				}
+			}
 
 			function generateObjectExpansion() {
 				var debugObj = {
@@ -83,7 +97,7 @@
 			// ]]>
 		</script>
 	</head>
-	<body onload="loaded = true; document.getElementById('enabled').checked = true;">
+	<body>
 		<div id="container" class="nonav">
 			<div id="header">
 				<h1><a href="/docs/index.html">log4javascript</a></h1>
@@ -98,14 +112,12 @@
 					| <a class="navitem" href="http://log4javascript.org" target="_blank">website</a>
 					| <a class="navitem" href="http://www.timdown.co.uk" target="_blank">timdown.co.uk</a>
 				</div>
-				<h1>log4javascript basic demo</h1>
+				<h1>log4javascript in-page console demo</h1>
 				<p>
-					<em><strong>NB.</strong> Since the demo below uses pop-up windows, you will
-					need to disable any pop-up blockers you may have for it to work.</em>
-				</p>
-				<p>
-					This demo demonstrates the default logger. For more options, please see the
-					<a href="index.html">demos area</a>.
+					This demo demonstrates an in-page logger. The example uses the default behaviour, which
+					is to place the log console in a fixed area at the bottom of the page. However, the
+					console may be placed inside any element in the page. To do this, you may specify the ID
+					of the element (even if the page has not yet loaded) or a reference to the element itself.
 				</p>
 				<p>
 					Enter a log message below and click on one of the buttons to log
@@ -114,6 +126,8 @@
 					expression searches on the log entries.
 				</p>
 				<div class="example">
+					<input type="button" value="Hide console" onclick="toggleConsole(this)" />
+					<br />
 					<input type="text" id="logText" value="Put log message here" />
 					<input type="button" value="debug" onclick="log.debug(document.getElementById('logText').value)" />
 					<input type="button" value="info" onclick="log.info(document.getElementById('logText').value)" />
@@ -142,6 +156,7 @@
 				</div>
 			</div>
 			<br class="clear" />
+			<div id="log"></div>
 			<div id="footer">
 				<span class="externallinkinfo">
 					<strong>NB.</strong> All external links open in a new window.

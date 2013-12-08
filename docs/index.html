@@ -4,7 +4,7 @@
 	<head>
 		<title>log4javascript documentation</title>
 		<meta http-equiv="content-type" content="text/html; charset=iso-8859-1" />
-		<meta name="author" content="Tim Down - tim@timdown.co.uk" />
+		<meta name="author" content="Tim Down - tim@log4javascript.org" />
 		<meta name="description" content="log4javascript, a logging framework for JavaScript based on log4j" />
 		<meta name="robots" content="all" />
 		<link rel="stylesheet" type="text/css" media="screen,print" href="../main.css" title="Default" />
@@ -12,25 +12,32 @@
 	<body>
 		<div id="container" class="nonav">
 			<div id="header">
-				<h1>log4javascript</h1>
+				<h1><a href="../index.html">log4javascript</a></h1>
+				<div id="nav">
+					<a class="navitem" href="../index.html">home</a>
+					| <a class="navitem" href="http://sourceforge.net/projects/log4javascript" target="_blank" title="Download (opens in new window)">download</a>
+					| <span class="navitem">docs</span>
+					| <a class="navitem" href="quickstart.html">quick start</a>
+					| <a class="navitem" href="../demos/index.html">demos</a>
+					| <a class="navitem" href="http://log4javascript.org" target="_blank">website</a>
+					| <a class="navitem" href="http://www.timdown.co.uk" target="_blank">timdown.co.uk</a>
+				</div>
 			</div>
 			<div id="content">
-				<div id="nav">
-					<span class="navitem">docs</span>
-					| <a class="navitem" href="quickstart.html">quick start</a>
-					| <a class="navitem" href="manual.html">manual</a>
-					| <a class="navitem" href="../demos/basic.html">basic demo</a>
-					| <a class="navitem" href="../demos/full.html">full demo</a>
-					| <a class="navitem" href="http://www.timdown.co.uk/log4javascript" target="_blank">website</a>
-				</div>
-				<h1>log4javascript documentation</h1>
+				<h1>log4javascript 1.4 documentation</h1>
 				<div id="links">
 					<h2>Links</h2>
 					<ul>
 						<li><a href="quickstart.html">Quick start</a></li>
+						<li><a href="distribution.html">Details of the log4javascript distribution</a></li>
+						<li><a href="backwardsincompatibilities.html">Backwards incompatibilities</a></li>
+						<li><a href="whatsnew.html">What's new in this release</a></li>
+						<li><a href="../changelog.txt">Change log</a></li>
 						<li><a href="manual.html">log4javascript manual</a></li>
+						<li><a href="lite.html">log4javascript Lite</a></li>
+						<li><a href="manual_lite.html">log4javascript Lite manual</a></li>
 						<li><a href="../demos/basic.html">Basic demo</a></li>
-						<li><a href="../demos/full.html">Full demo</a></li>
+						<li><a href="../demos/ajax.html">Ajax demo</a></li>
 					</ul>
 				</div>
 				<div id="contents">
@@ -38,6 +45,7 @@
 					<ul>
 						<li><a href="#whatitis">What it is</a></li>
 						<li><a href="#whofor">Who it's for</a></li>
+						<li><a href="#previousversions">Note on previous versions</a></li>
 						<li><a href="#features">Features</a></li>
 						<li><a href="#browsers">Browser support</a></li>
 						<li><a href="#licence">Licence</a></li>
@@ -49,10 +57,10 @@
 					<p>
 						log4javascript is a JavaScript logging framework based on the Java
 						logging framework <a href="http://logging.apache.org/log4j/docs/index.html"
-						title="log4j home page (opens in new window)" target="_blank">log4j</a>. 
+						title="log4j home page (opens in new window)" target="_blank">log4j</a>.
 					</p>
 					<p>
-						log4javascript implements a subset of log4j (primarily appenders
+						log4javascript implements a subset of log4j (primarily loggers, appenders
 						and layouts) and has a few convenience methods of its own for
 						quick JavaScript development. It can be used to debug JavaScript
 						applications of all sizes, including Ajax applications.
@@ -65,7 +73,6 @@
 						<a href="#container">Top</a>
 					</p>
 				</div>
-				
 				<div id="whofor">
 					<h2>Who it's for</h2>
 					<p>
@@ -73,6 +80,15 @@
 					</p>
 					<p class="linktotop">
 						<a href="#container">Top</a>
+					</p>
+				</div>
+				<div id="previousversions">
+					<h2>Note on previous versions</h2>
+					<p>
+						Documentation for previous versions of log4javascript are not available here.
+						However, documentation is bundled with every previous version, all of which
+						are <a href="http://sourceforge.net/projects/log4javascript"
+							target="_blank" title="Download (opens in new window)">available to download</a>.
 					</p>
 				</div>
 				<div id="features">
@@ -108,6 +124,7 @@
 						<li>Opera 8.01 and higher (pre- version 9 browsers have a rendering
 							bug related to scrolling that affects searching in PopUpAppender and InPageAppender)</li>
 						<li>Konqueror 3.4.3 and higher (untested on earlier versions)</li>
+						<li>Google Chrome</li>
 					</ul>
 					<h3>Partially supported browsers:</h3>
 					<ul>
@@ -119,14 +136,10 @@
 					<h3>Unsupported browsers:</h3>
 					<ul>
 						<li>
-							Internet Explorer for Mac. I have no plans to make log4javascript work
+							Internet Explorer for Mac. There are no plans to make log4javascript work
 							in this browser.
 						</li>
 					</ul>
-					<p>
-						I would welcome any information about whether log4javascript works in other browsers
-						(particularly Safari prior to version 1.3 and Konqueror prior to version 3.4.3).
-					</p>
 					<p class="linktotop">
 						<a href="#container">Top</a>
 					</p>
@@ -149,8 +162,8 @@
 						In order to gain an understanding of the ideas behind log4j and therefore log4javascript,
 						I highly recommend reading the <a href="http://logging.apache.org/log4j/docs/manual.html">short
 						introduction to log4j</a> from the log4j website. log4javascript borrows heavily from
-						log4j, <strong>but does differ in some key aspects</strong>, principally in the
-						implementation of <code>Logger</code>.
+						log4j but does not carry over all its concepts - for example, Filters and Renderers are not
+						implemented.
 					</p>
 					<p>
 						<a href="manual.html">The full log4javascript manual</a>
@@ -164,14 +177,14 @@
 				<span class="externallinkinfo">
 					<strong>NB.</strong> All external links open in a new window.
 				</span>
-				Written by Tim Down. <a href="mailto:tim@timdown.co.uk">tim@timdown.co.uk</a>
+				Written by Tim Down. <a href="mailto:tim@log4javascript.org">tim@log4javascript.org</a>
 				<br />
 				log4javascript is distributed under the <a href="http://www.apache.org/licenses/LICENSE-2.0.html"
 					title="Apache License, Version 2.0 (opens in new window)" target="_blank">Apache License,
 					Version 2.0</a>
-<!--build:sflogo-->	
+
 			</div>
 		</div>
-<!--build:googleanalytics-->	
+
 	</body>
 </html>

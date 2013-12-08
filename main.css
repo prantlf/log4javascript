@@ -23,12 +23,11 @@ div#container {
 
 div#header {
 	margin: 0px;
-	border-bottom: solid #cccccc 1px;
 }
 
 div#header h1 {
 	font-family: Courier New, Courier, Monospace, Serif;
-	padding: 10px 0px;
+	padding: 8px 0 15px 0;
 	margin: 0px;
 	font-size: 200%;
 	font-weight: bold;
@@ -40,10 +39,13 @@ div#header h1 a {
 }
 
 div#nav {
-	float: right;
 	font-size: 91.66%;
 	font-weight: bold;
 	padding-top: 5px;
+	padding-bottom: 5px;
+	border-bottom: solid #cccccc 1px;
+	text-align: right;
+	background-color: #f0f0fa;
 }
 
 div#container.nonav div#content {
@@ -57,7 +59,7 @@ div#container.nonav div#content {
 }
 
 div#content h1 {
-	padding: 5px 3px;
+	padding: 10px 3px 5px 3px;
 	margin: 5px 0px;
 	font-size: 175%;
 	font-weight: normal;
@@ -116,6 +118,10 @@ a.bold {
 	font-weight: bold;
 }
 
+a.underlined {
+	text-decoration: underline;
+}
+
 a img {
 	border-width: 0px;
 }
@@ -134,16 +140,45 @@ pre, code {
 	font-size: 108.33%;
 }
 
-pre.code {
+pre.code, pre.console {
 	border: solid 1px #cccccc;
-	background-color: #eeeeee;
 	padding: 3px;
 }
+
+pre.code {
+	background-color: #eeeeee;
+}
+
+*.trace {
+	color: #666666;
+}
+
+*.debug {
+	color: green;
+}
+
+*.info {
+	color: #000099;
+}
+
+*.warn {
+	color: #999900;
+}
+
+*.error {
+	color: red;
+}
+
+*.fatal {
+	color: #660066;
+}
+
 
 div.example, div.panel {
 	border: solid 1px #cccccc;
 	background-color: #f5f5f5;
 	padding: 3px;
+	margin-bottom: 10px;
 }
 
 div.panel h2 {
@@ -218,4 +253,48 @@ div.iframecontainer {
 	background-color: white;
 	border: solid #cccccc 1px;
 	width: 100%;
+}
+
+div.veryprominent {
+	background-color: darkgreen;
+	color: white;
+	font-weight: bold;
+	padding: 10px;
+	font-size: 133.33%;
+	margin-bottom: 10px;
+}
+
+div.veryprominent a {
+	color: white;
+}
+
+*.largetext {
+	font-size: 116.66%;
+}
+
+div#leftcolumn {
+	float: left;
+	width: 160px;
+}
+
+div#rightcolumn {
+	float: right;
+	width: 580px;
+}
+
+td.fullsupport {
+	background-color: lightgreen;
+}
+
+td.partialsupport {
+	background-color: gold;
+}
+
+td.nosupport {
+	background-color: lightcoral;
+}
+
+p.editions {
+	text-align: right;
+	font-style: italic;
 }
