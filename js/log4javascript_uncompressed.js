@@ -1957,6 +1957,7 @@
 		var waitForResponse = this.defaults.waitForResponse;
 		var batchSize = this.defaults.batchSize;
 		var timerInterval = this.defaults.timerInterval;
+		var sendAllOnTimer = this.defaults.sendAllOnTimer;
 		var requestSuccessCallback = this.defaults.requestSuccessCallback;
 		var failCallback = this.defaults.failCallback;
 		var postVarName = this.defaults.postVarName;
@@ -2012,6 +2013,13 @@
 			}
 		};
 
+		this.isSendAllOnTimer = function() { return sendAllOnTimer; };
+		this.setSendAllOnTimer = function(sendAllOnTimerParam) {
+			if (checkCanConfigure("sendAllOnTimer")) {
+				sendAllOnTimer = extractBooleanFromParam(sendAllOnTimerParam, sendAllOnTimer);
+			}
+		};
+
 		this.isWaitForResponse = function() { return waitForResponse; };
 		this.setWaitForResponse = function(waitForResponseParam) {
 			if (checkCanConfigure("waitForResponse")) {
@@ -2061,6 +2069,16 @@
 		function sendAll() {
 			if (isSupported && enabled) {
 				sending = true;
+				if (timed && sendAllOnTimer) {
+					var currentLoggingEvent;
+					var batchedLoggingEvents = [];
+					while ((currentLoggingEvent = queuedLoggingEvents.shift())) {
+						batchedLoggingEvents.push(currentLoggingEvent);
+					}
+					// If there's a partially completed batch, add it
+					if (batchedLoggingEvents.length > 0)
+						queuedRequests.push(batchedLoggingEvents);
+				}
 				var currentRequestBatch;
 				if (waitForResponse) {
 					// Send the first request then use this function as the callback once
@@ -2270,6 +2288,7 @@
 		waitForResponse: false,
 		timed: false,
 		timerInterval: 1000,
+		sendAllOnTimer: false,
 		batchSize: 1,
 		sendAllOnUnload: false,
 		requestSuccessCallback: null,
