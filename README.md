@@ -13,3 +13,7 @@ for documentation and other information.
 
 **sendAllOnTimer**: sends all queued log events in the specified
                     interval, although the last batch is incomplete
+
+Read the [updated documentation] including the extensions.
+
+[updated documentation]: https://rawgit.com/prantlf/log4javascript/combined/docs/manual.html
