@@ -1,6 +1,0 @@
-name:         log4javascript
-version:      1.3
-author:
-  - Tim Down <timdown@gmail.com>
-abstract: JavaScript logging framework based on log4j
-license: open_source
