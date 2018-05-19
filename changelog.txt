@@ -1,3 +1,10 @@
+log4javascript patches
+----------------------
+
+1.4.13 (19/5/2018)
+- Add sendAllOnTimer flag to flush all log events in the specified interval,
+  although the last batch is incomplete
+
 log4javascript change log
 -------------------------
 
